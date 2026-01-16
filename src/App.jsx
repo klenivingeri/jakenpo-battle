@@ -6,79 +6,87 @@ import { InitScene } from './components/Scene/InitScene'
 
 
 function App() {
-  const [player, setPlayer] = useState({ hp: 100, atk: 10 })
-  const [enemy, setEnemy] = useState({ hp: 100, atk: 10  })
-  const [disableButtonPlayer, setdisableButtonPlayer] = useState(false)
-  const [scene, setScene] = useState('Init')
-  const [roomCurrent, setRoomCurrent] = useState(0)
+  const [player, setPlayer] = useState({ hp: 100, atk: 10 });
+  const [enemy, setEnemy] = useState({ hp: 100, atk: 10 });
+  const [disableButtonPlayer, setdisableButtonPlayer] = useState(false);
+  const [scene, setScene] = useState('Init');
+  const [roomCurrent, setRoomCurrent] = useState(0); // Highest UNLOCKED room index
   const [gameStats, setGameStats] = useState({ wins: 0, losses: 0, draws: 0, result: '' });
-  
+  const [activeRoomIndex, setActiveRoomIndex] = useState(0);
 
-const rooms = Array.from({ length: 100 }, (_, i) => {
-  const level = i + 1;
-  
-  return {
-    id: level,
-    
-    // Duração: Começa com 30s e aumenta 2s por nível (ou diminui, se preferir mais pressão)
-    gameDuration: 30 + (i * 2), 
-    
-    // Velocidade: Base de 2 (lento) + incremento gradual. 
-    // Usamos (i * 0.2) para não subir de 1 em 1, o que seria rápido demais.
-    speed: 2 + (i * 0.25), 
-    
-    // Dano do Inimigo: Pode aumentar a cada 10 níveis
-    enemyAtk: 10 + Math.floor(i / 10) * 5,
+  const rooms = Array.from({ length: 100 }, (_, i) => {
+    const level = i + 1;
+    const baseSpeed = 2 + (i * 0.20);
+    const baseSpawnInterval = Math.max(600, 3000 - (i * 100));
 
-    // Bloqueio: Se o ID da sala for maior que o nível atual, fica desativado
-    disableButton: level > roomCurrent 
-  };
-});
+    return {
+      id: level,
+      gameDuration: 30 + (i * 2),
+      speed: baseSpeed,
+      spawnInterval: baseSpawnInterval,
+      enemyAtk: 10 + Math.floor(i / 5) * 2,
+      disableButton: i > roomCurrent,
+    };
+  });
 
   const handleBullet = (type, shooter) => {
     if (shooter === 'player') {
       setPlayer(prev => ({ ...prev, bulletType: type }));
     }
-  }
+  };
 
   const handleGameEnd = (stats) => {
     setGameStats(stats);
+    if (stats.result === 'win' && activeRoomIndex === roomCurrent) {
+        if (roomCurrent < rooms.length - 1) {
+            setRoomCurrent(roomCurrent + 1);
+        }
+    }
     setScene('EndResult');
-  }
+  };
+
+  const handleStartGame = (index) => {
+    setPlayer(p => ({ ...p, hp: 100 })); // Reset player HP
+    setActiveRoomIndex(index);
+    setScene('Game');
+  };
+
+  const currentRoom = rooms[activeRoomIndex];
 
   const stateScene = {
     Init: (
-    <InitScene setScene={setScene} rooms={rooms} setRoomCurrent={setRoomCurrent}></InitScene>
-  ),
+      <InitScene setScene={setScene} rooms={rooms} setRoomCurrent={handleStartGame} />
+    ),
     Game: (
-    <GameScene 
-      handleBullet={handleBullet} 
-      player={player} 
-      setPlayer={setPlayer}
-      enemy={enemy} 
-      setEnemy={setEnemy}
-      disableButtonPlayer={disableButtonPlayer} 
-      setdisableButtonPlayer={setdisableButtonPlayer}
-      setScene={setScene}
-      handleGameEnd={handleGameEnd}
-      gameDuraction={rooms[roomCurrent].gameDuraction}
-    />
-  ),
+      <GameScene
+        handleBullet={handleBullet}
+        player={player}
+        setPlayer={setPlayer}
+        enemy={{ ...enemy, atk: currentRoom.enemyAtk }}
+        setEnemy={setEnemy}
+        disableButtonPlayer={disableButtonPlayer}
+        setdisableButtonPlayer={setdisableButtonPlayer}
+        setScene={setScene}
+        handleGameEnd={handleGameEnd}
+        gameDuration={currentRoom.gameDuration}
+        speed={currentRoom.speed}
+        spawnInterval={currentRoom.spawnInterval}
+      />
+    ),
     EndResult: (
-    <div>
-      <h1>{gameStats.result === 'win' ? 'Você Venceu!' : 'Você Perdeu!'}</h1>
-      <p>Vitórias (projéteis destruídos): {gameStats.wins}</p>
-      <p>Derrotas (seus projéteis destruídos): {gameStats.losses}</p>
-      <p>Empates: {gameStats.draws}</p>
-      <button onClick={() => {
-        setScene('Init')
-        setRoomCurrent(roomCurrent+1)
-      }}>Voltar para o menu</button>
-    </div>
-  )
-  }
+      <div>
+        <h1>{gameStats.result === 'win' ? 'Você Venceu!' : 'Você Perdeu!'}</h1>
+        <p>Vitórias (projéteis destruídos): {gameStats.wins}</p>
+        <p>Derrotas (seus projéteis destruídos): {gameStats.losses}</p>
+        <p>Empates: {gameStats.draws}</p>
+        <button onClick={() => setScene('Init')}>
+          Voltar para o menu
+        </button>
+      </div>
+    ),
+  };
 
-  return stateScene[scene]
+  return stateScene[scene];
 }
 
 export default App

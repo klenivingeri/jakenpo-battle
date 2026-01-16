@@ -9,11 +9,13 @@ export const InitScene = ({rooms, setRoomCurrent, setScene}) => {
       <div className='init_container_grid'>
         {
         rooms.map((room, index) => 
-        <button key={room?.id} disabled={room.disableButton} className='init_item_grid init_button_footer' onClick={() => setRoomCurrent(room)}>
+        <button key={room?.id} disabled={room.disableButton} className='init_item_grid init_button_footer' onClick={() => {
+          setRoomCurrent(index);
+          setScene('Game');
+        }}>
           {room?.id}
         </button>)}
       </div>
-      <Footer setScene={setScene}></Footer>
     </div>
   )
 }

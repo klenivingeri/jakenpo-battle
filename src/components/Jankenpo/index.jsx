@@ -6,14 +6,14 @@ import paperImgSrc from '/assets/2_papel.png';
 import scissorsImgSrc from '/assets/3_tesoura.png';
 import explosionImgSrc from '/assets/explosao.gif';
 
-const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisableButtonPlayer, setScene, handleGameEnd, gameDuraction = 30 }) => {
+const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisableButtonPlayer, setScene, handleGameEnd, gameDuration = 30, speed = 2, spawnInterval = 2000 }) => {
     const canvasRef = useRef(null);
     const containerRef = useRef(null); // Ref for the container
     const [enemyBullets, setEnemyBullets] = useState([]);
     const [playerBullets, setPlayerBullets] = useState([]);
     const [explosions, setExplosions] = useState([]);
     const [stats, setStats] = useState({ wins: 0, losses: 0, draws: 0 });
-    const [timeLeft, setTimeLeft] = useState(gameDuraction);
+    const [timeLeft, setTimeLeft] = useState(gameDuration);
     const [loadedImages, setLoadedImages] = useState(null);
     const [isGameOver, setIsGameOver] = useState(false);
 
@@ -115,10 +115,10 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
                 };
                 return [...prevBullets, newBullet];
             });
-        }, 2000);
+        }, spawnInterval);
 
         return () => clearInterval(enemyShootInterval);
-    }, [isGameOver, loadedImages]);
+    }, [isGameOver, loadedImages, spawnInterval]);
 
     // Player shooting logic
     useEffect(() => {
@@ -164,8 +164,8 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
             context.clearRect(0, 0, canvas.width, canvas.height);
 
             // Move bullets by mutating refs
-            playerBulletsRef.current.forEach(b => b.y -= 5);
-            enemyBulletsRef.current.forEach(b => b.y += 5);
+            playerBulletsRef.current.forEach(b => b.y -= speed);
+            enemyBulletsRef.current.forEach(b => b.y += speed);
 
             // --- Collision Detection ---
             for (const pBullet of playerBulletsRef.current) {
@@ -246,7 +246,7 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
         animationFrameId = requestAnimationFrame(update);
 
         return () => cancelAnimationFrame(animationFrameId);
-    }, [loadedImages, isGameOver, enemy.atk, setPlayer]);
+    }, [loadedImages, isGameOver, enemy.atk, setPlayer, speed]);
 
 
     const checkCollision = (a, b) => a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
