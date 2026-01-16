@@ -1,0 +1,13 @@
+.canvas-container {
+    width: 100%;
+    flex-grow: 1; /* Faz o container crescer e ocupar o espaço */
+    position: relative; /* Necessário para o posicionamento do overlay de stats */
+  }
+  
+  canvas {
+    display: block; /* Remove espaço extra abaixo do canvas */
+    width: 100%;
+    height: 100%;
+    background-color: #f0f0f0;
+  }
+  
