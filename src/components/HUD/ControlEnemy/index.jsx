@@ -1,6 +1,6 @@
 import './Header.css'
 
-export const Header = ({enemy}) => {
+export const Header = ({ enemy }) => {
   return (
     <div className='container_header_hud'>
       <div className='container_hp_header_hud'>

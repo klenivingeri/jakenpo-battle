@@ -17,6 +17,7 @@
   height: 16px;
   outline: 2px solid black;
   position: relative;
+  background-color: white;
 }
 
 .hp_header_hud {

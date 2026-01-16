@@ -8,7 +8,7 @@ import explosionImgSrc from '/assets/explosao.gif';
 
 const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisableButtonPlayer, setScene, handleGameEnd, gameDuration = 30, speed = 2, spawnInterval = 2000 }) => {
     const canvasRef = useRef(null);
-    const containerRef = useRef(null); // Ref for the container
+    const containerRef = useRef(null);
     const [enemyBullets, setEnemyBullets] = useState([]);
     const [playerBullets, setPlayerBullets] = useState([]);
     const [explosions, setExplosions] = useState([]);
@@ -16,6 +16,19 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
     const [timeLeft, setTimeLeft] = useState(gameDuration);
     const [loadedImages, setLoadedImages] = useState(null);
     const [isGameOver, setIsGameOver] = useState(false);
+
+    // Helper functions
+    const checkCollision = (a, b) => a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+
+    const getResult = (playerChoice, enemyChoice) => {
+        if (playerChoice === enemyChoice) return 'draw';
+        if (
+            (playerChoice === 'pedra' && enemyChoice === 'tesoura') ||
+            (playerChoice === 'papel' && enemyChoice === 'pedra') ||
+            (playerChoice === 'tesoura' && enemyChoice === 'papel')
+        ) return 'win';
+        return 'loss';
+    };
 
     // Canvas resizing
     useEffect(() => {
@@ -38,7 +51,6 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
 
     // Image loading
     useEffect(() => {
-        // ... (image loading logic remains the same)
         const images = {
             'pedra': stoneImgSrc,
             'papel': paperImgSrc,
@@ -73,8 +85,11 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
             setIsGameOver(true);
             const finalResult = player.hp > 0 ? 'win' : 'loss';
             handleGameEnd({ ...stats, result: finalResult });
+        } else if (enemy.hp <= 0) {
+            setIsGameOver(true);
+            handleGameEnd({ ...stats, result: 'win' });
         }
-    }, [player.hp, timeLeft, isGameOver, handleGameEnd, stats]);
+    }, [player.hp, enemy.hp, timeLeft, isGameOver, handleGameEnd, stats]);
 
 
     // Game Timer
@@ -199,7 +214,17 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
             }
 
             // --- Filtering and Boundary Checks ---
-            const activePlayerBullets = playerBulletsRef.current.filter(b => b.active && b.y > -50);
+            const activePlayerBullets = [];
+            playerBulletsRef.current.forEach(pBullet => {
+                if (pBullet.active) {
+                    if (pBullet.y < -50) { // Bullet has gone off the top of the screen
+                        pBullet.active = false; // Deactivate it
+                        setEnemy(e => ({ ...e, hp: e.hp - player.atk })); // Enemy loses HP
+                    } else {
+                        activePlayerBullets.push(pBullet);
+                    }
+                }
+            });
 
             const activeEnemyBullets = [];
             enemyBulletsRef.current.forEach(eBullet => {
@@ -225,7 +250,17 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
 
             // --- Drawing ---
             playerBulletsRef.current.forEach(b => context.drawImage(loadedImages[b.type], b.x, b.y, b.width, b.height));
-            enemyBulletsRef.current.forEach(b => context.drawImage(loadedImages[b.type], b.x, b.y, b.width, b.height));
+            
+            // Draw enemy bullets rotated
+            enemyBulletsRef.current.forEach(b => {
+                context.save(); // Save the current state
+                // Translate to the center of the image
+                context.translate(b.x + b.width / 2, b.y + b.height / 2);
+                context.rotate(Math.PI); // Rotate 180 degrees
+                // Draw the image, adjusting coordinates because of the translation
+                context.drawImage(loadedImages[b.type], -b.width / 2, -b.height / 2, b.width, b.height);
+                context.restore(); // Restore the state
+            });
             
             // Explosions
             const activeExplosions = [];
@@ -246,28 +281,18 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
         animationFrameId = requestAnimationFrame(update);
 
         return () => cancelAnimationFrame(animationFrameId);
-    }, [loadedImages, isGameOver, enemy.atk, setPlayer, speed]);
-
-
-    const checkCollision = (a, b) => a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
-
-    const getResult = (playerChoice, enemyChoice) => {
-        if (playerChoice === enemyChoice) return 'draw';
-        if (
-            (playerChoice === 'pedra' && enemyChoice === 'tesoura') ||
-            (playerChoice === 'papel' && enemyChoice === 'pedra') ||
-            (playerChoice === 'tesoura' && enemyChoice === 'papel')
-        ) return 'win';
-        return 'loss';
-    }
-
+    }, [loadedImages, isGameOver, enemy.atk, setPlayer, setEnemy, player.atk, speed]);
 
     return (
         <div ref={containerRef} className="canvas-container">
-            <canvas ref={canvasRef} />
-            <div style={{position: 'absolute', top: 10, left: 10, color: 'black', backgroundColor: 'rgba(255,255,255,0.5)', padding: 5, borderRadius: 5}}>
-                Time: {timeLeft} | Wins: {stats.wins} | Losses: {stats.losses} | Draws: {stats.draws}
+            <div style={{position: 'absolute', display:'flex', flexDirection: 'column',top: 24, left: 10, color: 'black', padding: 5, borderRadius: 5}}>
+                <div>Time: {timeLeft}</div>
+                <div>Wins: {stats.wins} </div>
+                <div>Losses: {stats.losses}</div>
+                <div>Draws: {stats.draws}</div>
             </div>
+            <canvas ref={canvasRef} />
+            
         </div>
     );
 };

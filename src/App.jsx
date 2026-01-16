@@ -13,18 +13,19 @@ function App() {
   const [roomCurrent, setRoomCurrent] = useState(0); // Highest UNLOCKED room index
   const [gameStats, setGameStats] = useState({ wins: 0, losses: 0, draws: 0, result: '' });
   const [activeRoomIndex, setActiveRoomIndex] = useState(0);
+  const [roomStars, setRoomStars] = useState(Array(100).fill(0));
 
   const rooms = Array.from({ length: 100 }, (_, i) => {
     const level = i + 1;
     const baseSpeed = 2 + (i * 0.20);
     const baseSpawnInterval = Math.max(600, 3000 - (i * 100));
-
     return {
       id: level,
       gameDuration: 30 + (i * 2),
       speed: baseSpeed,
       spawnInterval: baseSpawnInterval,
-      enemyAtk: 10 + Math.floor(i / 5) * 2,
+      enemyAtk: 10, // Math.floor(i / 5) * 2,
+      enemyHp: 100, // enemyHp: 100 + i * 10,
       disableButton: i > roomCurrent,
     };
   });
@@ -36,17 +37,27 @@ function App() {
   };
 
   const handleGameEnd = (stats) => {
-    setGameStats(stats);
-    if (stats.result === 'win' && activeRoomIndex === roomCurrent) {
-        if (roomCurrent < rooms.length - 1) {
-            setRoomCurrent(roomCurrent + 1);
+    let stars = 0;
+    if (stats.result === 'win') {
+      stars = player.hp >= 100 ? 3 : player.hp >= 50 ? 2 : 1;
+      const newStars = [...roomStars];
+      if (stars > newStars[activeRoomIndex]) {
+        newStars[activeRoomIndex] = stars;
+        setRoomStars(newStars);
+      }
+        if (activeRoomIndex === roomCurrent) {
+            if (roomCurrent < rooms.length - 1) {
+                setRoomCurrent(roomCurrent + 1);
+            }
         }
     }
+    setGameStats({ ...stats, stars });
     setScene('EndResult');
   };
 
   const handleStartGame = (index) => {
     setPlayer(p => ({ ...p, hp: 100 })); // Reset player HP
+    setEnemy(e => ({ ...e, hp: rooms[index].enemyHp })); // Reset enemy HP
     setActiveRoomIndex(index);
     setScene('Game');
   };
@@ -55,7 +66,7 @@ function App() {
 
   const stateScene = {
     Init: (
-      <InitScene setScene={setScene} rooms={rooms} setRoomCurrent={handleStartGame} />
+      <InitScene setScene={setScene} rooms={rooms} setRoomCurrent={handleStartGame} roomStars={roomStars} />
     ),
     Game: (
       <GameScene
@@ -76,6 +87,13 @@ function App() {
     EndResult: (
       <div>
         <h1>{gameStats.result === 'win' ? 'Você Venceu!' : 'Você Perdeu!'}</h1>
+        {gameStats.result === 'win' && (
+          <div>
+            {Array.from({ length: gameStats.stars }).map((_, i) => (
+              <span key={i}>⭐</span>
+            ))}
+          </div>
+        )}
         <p>Vitórias (projéteis destruídos): {gameStats.wins}</p>
         <p>Derrotas (seus projéteis destruídos): {gameStats.losses}</p>
         <p>Empates: {gameStats.draws}</p>

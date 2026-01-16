@@ -20,6 +20,10 @@ body {
   line-height: 1.5;
   /* 5. Improve text rendering */
   -webkit-font-smoothing: antialiased;
+  font-family: "Pixelify Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400; /* Peso para parecer bem "retro" */
+  font-style: normal;
 }
 
 /* 6. Improve media defaults */

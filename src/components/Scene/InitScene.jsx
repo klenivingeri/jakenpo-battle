@@ -2,7 +2,7 @@ import { Footer } from '../Footer'
 import './GameScene.css'
 
 
-export const InitScene = ({rooms, setRoomCurrent, setScene}) => {
+export const InitScene = ({rooms, setRoomCurrent, setScene, roomStars}) => {
   
   return (
     <div className='container_game_scene'>
@@ -12,8 +12,14 @@ export const InitScene = ({rooms, setRoomCurrent, setScene}) => {
         <button key={room?.id} disabled={room.disableButton} className='init_item_grid init_button_footer' onClick={() => {
           setRoomCurrent(index);
           setScene('Game');
+          //estrela aqui, só em fases ele já passou
         }}>
-          {room?.id}
+          <div>{room?.id}</div>
+          <div>
+            {Array.from({ length: roomStars[index] }).map((_, i) => (
+              <span key={i}>⭐</span>
+            ))}
+          </div>
         </button>)}
       </div>
     </div>
