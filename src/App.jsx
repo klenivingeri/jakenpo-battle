@@ -1,19 +1,36 @@
-import { useState } from 'react'
-import './App.css'
-import { GameScene } from './components/Scene/GameScene'
-import { InitScene } from './components/Scene/InitScene'
-
-
+import { useState, useEffect } from 'react';
+import './App.css';
+import { GameScene } from './components/Scene/GameScene';
+import { InitScene } from './components/Scene/InitScene';
 
 function App() {
   const [player, setPlayer] = useState({ hp: 100, atk: 10 });
   const [enemy, setEnemy] = useState({ hp: 100, atk: 10 });
   const [disableButtonPlayer, setdisableButtonPlayer] = useState(false);
   const [scene, setScene] = useState('Init');
-  const [roomCurrent, setRoomCurrent] = useState(0); // Highest UNLOCKED room index
-  const [gameStats, setGameStats] = useState({ wins: 0, losses: 0, draws: 0, result: '' });
+
+  const [roomCurrent, setRoomCurrent] = useState(() => {
+    const saved = localStorage.getItem('roomCurrent');
+    return saved !== null ? JSON.parse(saved) : 0;
+  });
+
+  const [gameStats, setGameStats] = useState(() => {
+    const saved = localStorage.getItem('gameStats');
+    return saved !== null ? JSON.parse(saved) : { wins: 0, losses: 0, draws: 0, result: '' };
+  });
+
+  const [roomStars, setRoomStars] = useState(() => {
+    const saved = localStorage.getItem('roomStars');
+    return saved !== null ? JSON.parse(saved) : Array(100).fill(0);
+  });
   const [activeRoomIndex, setActiveRoomIndex] = useState(0);
-  const [roomStars, setRoomStars] = useState(Array(100).fill(0));
+
+  useEffect(() => {
+    localStorage.setItem('roomCurrent', JSON.stringify(roomCurrent));
+    localStorage.setItem('gameStats', JSON.stringify(gameStats));
+    localStorage.setItem('roomStars', JSON.stringify(roomStars));
+  }, [roomCurrent, gameStats, roomStars]);
+
 
   const rooms = Array.from({ length: 100 }, (_, i) => {
     const level = i + 1;
@@ -104,7 +121,11 @@ function App() {
     ),
   };
 
-  return stateScene[scene];
+  return <div className='app-container'>
+    <div className='game-screen'>
+      {stateScene[scene]}
+      </div>
+  </div>
 }
 
 export default App

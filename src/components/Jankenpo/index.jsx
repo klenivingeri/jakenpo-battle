@@ -139,7 +139,7 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
     useEffect(() => {
         if (isGameOver || !player.bulletType || !canvasRef.current) return;
 
-        if (playerBullets.length < enemyBullets.length) {
+        if (playerBullets.length < enemyBullets.length + 1) {
             const newBullet = {
                 type: player.bulletType,
                 x: canvasRef.current.width / 2 - 25,
@@ -164,7 +164,7 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
     
     // Disable player button
     useEffect(() => {
-        setdisableButtonPlayer(playerBullets.length >= enemyBullets.length || isGameOver);
+        setdisableButtonPlayer(playerBullets.length >= enemyBullets.length + 1 || isGameOver);
     }, [playerBullets, enemyBullets, setdisableButtonPlayer, isGameOver]);
 
     // Main game loop
