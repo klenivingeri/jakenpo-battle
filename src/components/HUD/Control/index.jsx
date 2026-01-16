@@ -1,4 +1,4 @@
-import './Footer.css'
+import './Control.css'
 
 // Função utilitária para facilitar
 const vibrate = (pattern = 50) => {

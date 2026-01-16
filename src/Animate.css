@@ -1,0 +1,41 @@
+@keyframes pulsar {
+  0% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.20);
+  }
+  50% {
+    transform: scale(0.95);
+  }
+  75% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.botao-pulsar {
+  animation: pulsar 1.2s ease-out forwards;
+  cursor: pointer;
+}
+
+@keyframes chegada {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.botao-chegada {
+  animation: chegada 0.45s ease-out forwards;
+  image-rendering: pixelated;
+}

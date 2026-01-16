@@ -1,7 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './App.css';
+import './Animate.css';
 import { GameScene } from './components/Scene/GameScene';
 import { InitScene } from './components/Scene/InitScene';
+import { ResultScene } from './components/Scene/ResultScene';
+import { toggleFullScreen } from './help/fullScreen';
 
 // Função utilitária para facilitar
 const vibrate = (pattern = 50) => {
@@ -14,7 +17,7 @@ function App() {
   const [player, setPlayer] = useState({ hp: 100, atk: 10 });
   const [enemy, setEnemy] = useState({ hp: 100, atk: 10 });
   const [disableButtonPlayer, setdisableButtonPlayer] = useState(false);
-  const [scene, setScene] = useState('Init');
+  const [scene, setScene] = useState('Start');
 
   const [roomCurrent, setRoomCurrent] = useState(() => {
     const saved = localStorage.getItem('roomCurrent');
@@ -32,24 +35,57 @@ function App() {
   });
   const [activeRoomIndex, setActiveRoomIndex] = useState(0);
 
+  const backgroundMusic = useRef(new Audio('/assets/song/song-background.mp3'));
+
+  useEffect(() => {
+    backgroundMusic.current.loop = true;
+    backgroundMusic.current.volume = 0.1; // Volume 20
+
+    return () => {
+      backgroundMusic.current.pause();
+    };
+  }, []);
+
   useEffect(() => {
     localStorage.setItem('roomCurrent', JSON.stringify(roomCurrent));
     localStorage.setItem('gameStats', JSON.stringify(gameStats));
     localStorage.setItem('roomStars', JSON.stringify(roomStars));
   }, [roomCurrent, gameStats, roomStars]);
 
+  const handleInit = () => {
+    setScene('Init');
+    //toggleFullScreen()
+    backgroundMusic.current.play()
+  }
 
   const rooms = Array.from({ length: 100 }, (_, i) => {
     const level = i + 1;
-    const baseSpeed = 2 + (i * 0.20);
-    const baseSpawnInterval = Math.max(600, 3000 - (i * 100));
+
+    // Reseta a curva de velocidade/spawn a cada 30 níveis
+    const resetIndex = i % 35;
+
+    // Velocidade: sobe de 2.0 a 7.6 dentro de cada bloco de 30 níveis
+    const baseSpeed = 2 + (Math.floor(resetIndex / 2) * 0.40);
+
+    // Spawn: fica mais rápido até o meio de cada bloco
+    const baseSpawnInterval = Math.max(600, 3000 - (Math.min(resetIndex, 15) * 100));
+
+    // LÓGICA DE MULTIPLIER (Quantidade de balas)
+    // i < 29: Níveis 1-29 -> 1 bala, 
+    // i < 59: Níveis 30-59 -> 2 balas um bullet atras do outro
+    // i >= 59: Níveis 60+ -> 3 balas  um bullet atras do outro
+    let bulletsPerSpawn = 1;
+    if (i >= 29 && i < 59) bulletsPerSpawn = 2;
+    else if (i >= 59) bulletsPerSpawn = 3;
+
     return {
       id: level,
-      gameDuration: 30 + (i * 2),
+      gameDuration: 30 + resetIndex,
       speed: baseSpeed,
       spawnInterval: baseSpawnInterval,
-      enemyAtk: 10, // Math.floor(i / 5) * 2,
-      enemyHp: 100, // enemyHp: 100 + i * 10,
+      bulletsPerAction: bulletsPerSpawn, // Nova propriedade!
+      enemyAtk: 10,
+      enemyHp: 100,
       disableButton: i > roomCurrent,
     };
   });
@@ -89,6 +125,28 @@ function App() {
   const currentRoom = rooms[activeRoomIndex];
 
   const stateScene = {
+    Start: (
+      <div className='botao-pulsar' style={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: '20px',
+        textAlign: 'center',
+        width: '100%',
+        height: '100%'
+      }}>
+        <div style={{
+          marginTop: '-20px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <img src="/assets/logo.png" />
+          <button className='button_footer' onClick={() => handleInit()}> Iniciar</button>
+        </div>
+      </div>),
     Init: (
       <InitScene setScene={setScene} rooms={rooms} setRoomCurrent={handleStartGame} roomStars={roomStars} />
     ),
@@ -106,46 +164,11 @@ function App() {
         gameDuration={currentRoom.gameDuration}
         speed={currentRoom.speed}
         spawnInterval={currentRoom.spawnInterval}
+        bulletsPerSpawn={currentRoom.bulletsPerAction}
       />
     ),
     EndResult: (
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        padding: '20px',
-        textAlign: 'center',
-        width: '100%',
-        height: '100%'
-      }}>
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          border: '3px solid black',
-          width: '100%',
-          height: '100%'
-        }}>
-          <div >
-                        {gameStats.result === 'win' && (
-              <div>
-                {Array.from({ length: gameStats.stars }).map((_, i) => (
-                  <span key={i} style={{ fontSize: '3rem' }}>⭐</span>
-                ))}
-              </div>
-            )}
-            <h1 className='' style={{ fontSize: '3rem' }}>{gameStats.result === 'win' ? 'Você Venceu!' : 'Você Perdeu!'}</h1>
-            <h3 className=''>Durante a Batalha</h3>
-            <p>Vitórias: {gameStats.wins}</p>
-            <p>Derrotas: {gameStats.losses}</p>
-            <p>Empates: {gameStats.draws}</p>
-            <button className='button_footer' style={{padding: '10px', marginTop: '20px', fontSize: '1rem'}} onClick={() => setScene('Init')}>
-              Voltar para o menu
-            </button>
-          </div>
-        </div>
-      </div>
+      <ResultScene gameStats={gameStats} setScene={setScene} />
     ),
   };
 
@@ -157,3 +180,5 @@ function App() {
 }
 
 export default App
+
+

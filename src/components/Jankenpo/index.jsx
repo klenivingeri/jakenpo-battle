@@ -6,6 +6,9 @@ import paperImgSrc from '/assets/2_papel.png';
 import scissorsImgSrc from '/assets/3_tesoura.png';
 import explosionImgSrc from '/assets/explosao.gif';
 
+// Import the audio file
+import explosionSoundSrc from '/assets/song/song-explosion.mp3';
+
 // Função utilitária para facilitar
 const vibrate = (pattern = 50) => {
   if (navigator.vibrate) {
@@ -32,6 +35,10 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
     const [timeLeft, setTimeLeft] = useState(gameDuration);
     const [loadedImages, setLoadedImages] = useState(null);
     const [isGameOver, setIsGameOver] = useState(false);
+    const explosionAudioRef = useRef(new Audio(explosionSoundSrc));
+
+    // Audio ref
+
 
     // Helper functions
     const checkCollision = (a, b) => a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
@@ -138,7 +145,7 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
                 const newBullet = {
                     type: newType,
                     x: canvasRef.current.width / 2 - 25,
-                    y: 0,
+                    y: 50,
                     width: 50,
                     height: 50,
                     active: true,
@@ -208,6 +215,11 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
                     if (checkCollision(pBullet, eBullet)) {
                         const result = getResult(pBullet.type, eBullet.type);
                         setExplosions(prev => [...prev, { x: pBullet.x, y: pBullet.y, anim: 0, id: Date.now() }]);
+                        // Play explosion sound
+                        if (explosionAudioRef.current) {
+                            explosionAudioRef.current.currentTime = 0; // Restart if already playing
+                            explosionAudioRef.current.play().catch(e => console.error("Error playing sound:", e));
+                        }
 
                         if (result === 'win') {
                             eBullet.active = false; // Enemy bullet destroyed
@@ -234,7 +246,7 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
             const activePlayerBullets = [];
             playerBulletsRef.current.forEach(pBullet => {
                 if (pBullet.active) {
-                    if (pBullet.y < -50) { // Bullet has gone off the top of the screen
+                    if (pBullet.y < +30) { // Bullet has gone 100px off the top of the screen
                         pBullet.active = false; // Deactivate it
                         setEnemy(e => ({ ...e, hp: e.hp - player.atk })); // Enemy loses HP
                     } else {
@@ -246,7 +258,7 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
             const activeEnemyBullets = [];
             enemyBulletsRef.current.forEach(eBullet => {
                 if (eBullet.active) {
-                    if (eBullet.y > canvas.height) {
+                    if (eBullet.y > canvas.height - 100) { // Deactivate if it goes 100px off-screen
                         eBullet.active = false; // Deactivate if it goes off-screen
                         setPlayer(p => ({ ...p, hp: p.hp - enemy.atk }));
                         handleCollisionVibration('player_damaged');
