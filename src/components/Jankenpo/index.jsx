@@ -6,6 +6,22 @@ import paperImgSrc from '/assets/2_papel.png';
 import scissorsImgSrc from '/assets/3_tesoura.png';
 import explosionImgSrc from '/assets/explosao.gif';
 
+// Função utilitária para facilitar
+const vibrate = (pattern = 50) => {
+  if (navigator.vibrate) {
+    navigator.vibrate(pattern);
+  }
+};
+
+// --- NO MOMENTO DA COLISÃO ---
+const handleCollisionVibration = (type) => {
+  if (type === 'hit_enemy') {
+    vibrate(40); // Explosão curta de sucesso
+  } else if (type === 'player_damaged') {
+    vibrate([100, 50, 100]); // Vibração dupla de erro/dano
+  }
+};
+
 const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisableButtonPlayer, setScene, handleGameEnd, gameDuration = 30, speed = 2, spawnInterval = 2000 }) => {
     const canvasRef = useRef(null);
     const containerRef = useRef(null);
@@ -196,6 +212,7 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
                         if (result === 'win') {
                             eBullet.active = false; // Enemy bullet destroyed
                             setStats(s => ({...s, wins: s.wins + 1}));
+                            handleCollisionVibration('hit_enemy');
                         } else if (result === 'loss') {
                             pBullet.active = false; // Player bullet destroyed
                             setStats(s => ({...s, losses: s.losses + 1}));
@@ -232,6 +249,7 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
                     if (eBullet.y > canvas.height) {
                         eBullet.active = false; // Deactivate if it goes off-screen
                         setPlayer(p => ({ ...p, hp: p.hp - enemy.atk }));
+                        handleCollisionVibration('player_damaged');
                         setExplosions(prev => [...prev, { x: eBullet.x, y: eBullet.y - 50, anim: 0, id: Date.now() }]);
                     } else {
                         activeEnemyBullets.push(eBullet);

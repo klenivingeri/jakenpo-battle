@@ -3,6 +3,13 @@ import './App.css';
 import { GameScene } from './components/Scene/GameScene';
 import { InitScene } from './components/Scene/InitScene';
 
+// Função utilitária para facilitar
+const vibrate = (pattern = 50) => {
+  if (navigator.vibrate) {
+    navigator.vibrate(pattern);
+  }
+};
+
 function App() {
   const [player, setPlayer] = useState({ hp: 100, atk: 10 });
   const [enemy, setEnemy] = useState({ hp: 100, atk: 10 });
