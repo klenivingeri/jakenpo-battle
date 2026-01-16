@@ -54,7 +54,7 @@ function App() {
 
   const handleInit = () => {
     setScene('Init');
-    //toggleFullScreen()
+    toggleFullScreen()
     backgroundMusic.current.play()
   }
 
