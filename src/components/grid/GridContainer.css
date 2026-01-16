@@ -1,0 +1,36 @@
+/* Garante que o container ocupe 100% da altura da viewport */
+.pageWrapper {
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  justify-content: center; /* Centraliza o conteúdo horizontalmente */
+  background-color: #f0f0f0; /* Opcional: cor de fundo */
+  position: relative;
+}
+
+.gridContainer {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr); /* 12 colunas iguais */
+  grid-template-rows: repeat(12, 1fr);    /* 12 linhas iguais */
+  background-color: red;
+  width: 100%;
+  max-width: 1080px; /* Limite solicitado */       /* Espaçamento entre itens */
+  background-color: white;
+  position: absolute; /* ou fixed */
+  top: 0;
+  z-index: 3;
+  
+  /* FAZ O GRID SER "FANTASMA" (cliques passam por ele) */
+  pointer-events: none;
+}
+
+.gridItem {
+  pointer-events: auto;
+  background-color: #007bff;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  font-family: sans-serif;
+}
