@@ -1,12 +1,14 @@
 @keyframes pulsar {
   0% {
-    transform: scale(1);
+    transform: scale(0.70);
+    opacity: 0;
   }
   25% {
-    transform: scale(1.20);
+    transform: scale(1.10);
   }
   50% {
     transform: scale(0.95);
+    opacity: 1;
   }
   75% {
     transform: scale(1.05);
@@ -17,7 +19,7 @@
 }
 
 .botao-pulsar {
-  animation: pulsar 1.2s ease-out forwards;
+  animation: pulsar 1.5s ease-out forwards;
   cursor: pointer;
 }
 

@@ -1,6 +1,10 @@
 /* 1. Use a more-intuitive box-sizing model */
 *, *::before, *::after {
   box-sizing: border-box;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 /* 2. Remove default margin */
@@ -24,6 +28,10 @@ body {
   font-optical-sizing: auto;
   font-weight: 400; /* Peso para parecer bem "retro" */
   font-style: normal;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* 6. Improve media defaults */

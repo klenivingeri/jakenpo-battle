@@ -11,7 +11,7 @@ export const InitScene = ({ rooms, setRoomCurrent, setScene, roomStars }) => {
     rooms.forEach((_, index) => {
       const t = setTimeout(() => {
         setVisibleRooms(prev => [...prev, index]);
-      }, index * 50); // intervalo entre rooms
+      }, index * 35); // intervalo entre rooms
 
       timeouts.push(t);
     });
@@ -21,7 +21,7 @@ export const InitScene = ({ rooms, setRoomCurrent, setScene, roomStars }) => {
 
   return (
     <div className='container_game_scene'>
-      <div style={{ flex: 1, overflowY: 'auto' }}>
+      <div style={{ flex: 1, overflowY: 'auto', height:'1000px' }}>
         <div className='init_container_grid'>
 
           {rooms.map((room, index) => {
@@ -53,10 +53,8 @@ export const InitScene = ({ rooms, setRoomCurrent, setScene, roomStars }) => {
               </button>
             );
           })}
-
         </div>
       </div>
-
       <Footer setScene={setScene} />
     </div>
   );

@@ -2,6 +2,7 @@ html, body, #root {
   margin: 0;
   padding: 0;
   width: 100%;
+  max-width: 800px;
   height: 100%;
 }
 
@@ -21,8 +22,8 @@ html, body, #root {
 .game-screen {
   position: relative;
   width: 600px;             /* Largura fixa solicitada */
-  height: 100dvh;            /* Altura total da tela */
-  max-width: 100%;          /* Responsividade para telas menores que 600px */
+  height: 100%;           /* Altura total da tela */
+  max-width: 600px;         /* Responsividade para telas menores que 600px */
   position: relative;
   overflow: hidden;
 }

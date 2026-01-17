@@ -4,7 +4,7 @@ import './Jankenpo.css';
 import stoneImgSrc from '/assets/1_pedra.png';
 import paperImgSrc from '/assets/2_papel.png';
 import scissorsImgSrc from '/assets/3_tesoura.png';
-import explosionImgSrc from '/assets/explosao.gif';
+import explosionImgSrc from '/assets/explosao.png';
 
 // Import the audio file
 import explosionSoundSrc from '/assets/song/song-explosion.mp3';
@@ -31,6 +31,7 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
     const [enemyBullets, setEnemyBullets] = useState([]);
     const [playerBullets, setPlayerBullets] = useState([]);
     const [explosions, setExplosions] = useState([]);
+    const [particles, setParticles] = useState([]);
     const [stats, setStats] = useState({ wins: 0, losses: 0, draws: 0 });
     const [timeLeft, setTimeLeft] = useState(gameDuration);
     const [loadedImages, setLoadedImages] = useState(null);
@@ -145,11 +146,13 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
                 const newBullet = {
                     type: newType,
                     x: canvasRef.current.width / 2 - 25,
-                    y: 50,
+                    y: 0, // spawn do inimigo
                     width: 50,
                     height: 50,
                     active: true,
-                    id: Date.now()
+                    id: Date.now(),
+                    createdAt: performance.now(),
+                    lastParticleY: 0
                 };
                 return [...prevBullets, newBullet];
             });
@@ -166,11 +169,13 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
             const newBullet = {
                 type: player.bulletType,
                 x: canvasRef.current.width / 2 - 25,
-                y: canvasRef.current.height - 50,
+                y: canvasRef.current.height - 120, //saida do bullet player
                 width: 50,
                 height: 50,
                 active: true,
-                id: Date.now()
+                id: Date.now(),
+                createdAt: performance.now(),
+                lastParticleY: canvasRef.current.height - 50
             };
             setPlayerBullets(prev => [...prev, newBullet]);
             handleBullet(null, 'player'); // Reset bullet type only after successfully shooting
@@ -184,6 +189,8 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
     enemyBulletsRef.current = enemyBullets;
     const explosionsRef = useRef(explosions);
     explosionsRef.current = explosions;
+    const particlesRef = useRef(particles);
+    particlesRef.current = particles;
     
     // Disable player button
     useEffect(() => {
@@ -201,9 +208,33 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
             if(!canvas) return;
             context.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Move bullets by mutating refs
-            playerBulletsRef.current.forEach(b => b.y -= speed);
-            enemyBulletsRef.current.forEach(b => b.y += speed);
+            // Move and scale bullets
+            const now = performance.now();
+            const animationDuration = 200; // milliseconds
+
+            playerBulletsRef.current.forEach(b => {
+                b.y -= speed;
+                const age = now - b.createdAt;
+                const scale = Math.min(1, age / animationDuration);
+                const currentSize = 50 * scale;
+
+                // Adjust x to keep the bullet centered as it scales
+                b.x = (canvas.width / 2) - (currentSize / 2);
+                b.width = currentSize;
+                b.height = currentSize;
+            });
+
+            enemyBulletsRef.current.forEach(b => {
+                b.y += speed;
+                const age = now - b.createdAt;
+                const scale = Math.min(1, age / animationDuration);
+                const currentSize = 50 * scale;
+
+                // Adjust x to keep the bullet centered as it scales
+                b.x = (canvas.width / 2) - (currentSize / 2);
+                b.width = currentSize;
+                b.height = currentSize;
+            });
 
             // --- Collision Detection ---
             for (const pBullet of playerBulletsRef.current) {
@@ -214,8 +245,8 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
 
                     if (checkCollision(pBullet, eBullet)) {
                         const result = getResult(pBullet.type, eBullet.type);
-                        setExplosions(prev => [...prev, { x: pBullet.x, y: pBullet.y, anim: 0, id: Date.now() }]);
-                        // Play explosion sound
+                        setExplosions(prev => [...prev, { x: pBullet.x, y: pBullet.y - 25, anim: 0, id: Date.now(), animCounter: 0, animDelay: 2 }]);
+                        // Play explosion sound // 25 é a explosao pra frent do bullet do player
                         if (explosionAudioRef.current) {
                             explosionAudioRef.current.currentTime = 0; // Restart if already playing
                             explosionAudioRef.current.play().catch(e => console.error("Error playing sound:", e));
@@ -262,7 +293,7 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
                         eBullet.active = false; // Deactivate if it goes off-screen
                         setPlayer(p => ({ ...p, hp: p.hp - enemy.atk }));
                         handleCollisionVibration('player_damaged');
-                        setExplosions(prev => [...prev, { x: eBullet.x, y: eBullet.y - 50, anim: 0, id: Date.now() }]);
+                        setExplosions(prev => [...prev, { x: eBullet.x, y: eBullet.y - 50, anim: 0, id: Date.now(), animCounter: 0, animDelay: 2 }]);
                     } else {
                         activeEnemyBullets.push(eBullet);
                     }
@@ -277,6 +308,53 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
             if (activeEnemyBullets.length !== enemyBulletsRef.current.length) {
                 setEnemyBullets(activeEnemyBullets);
             }
+
+            // --- Particle System ---
+            const particleNow = performance.now();
+
+            // Spawn new particles
+            const spawnParticlesForBullet = (bullet) => {
+                const dist = Math.abs(bullet.y - bullet.lastParticleY);
+                if (dist > 20) {
+                    particlesRef.current.push({
+                        x: bullet.x + bullet.width / 2,
+                        y: bullet.y + bullet.height / 2,
+                        createdAt: particleNow,
+                        id: Math.random()
+                    });
+                    bullet.lastParticleY = bullet.y;
+                }
+            };
+            playerBulletsRef.current.forEach(spawnParticlesForBullet);
+            enemyBulletsRef.current.forEach(spawnParticlesForBullet);
+
+            // Update and draw particles
+            const activeParticles = [];
+            particlesRef.current.forEach(p => {
+                const life = (particleNow - p.createdAt) / 500; // 0 -> 1
+                if (life < 1) {
+                    activeParticles.push(p);
+
+                    const scale = 1 - life;
+                    const size = (50 / 2) * scale; // 50 is bullet size
+
+                    context.globalAlpha = 1 - life;
+                    context.fillStyle = 'white';
+
+                    context.fillRect(
+                        p.x - size / 2,
+                        p.y - size / 2,
+                        size,
+                        size
+                    );
+                }
+            });
+            context.globalAlpha = 1;
+
+            if (activeParticles.length !== particlesRef.current.length) {
+                setParticles(activeParticles);
+            }
+
 
             // --- Drawing ---
             playerBulletsRef.current.forEach(b => context.drawImage(loadedImages[b.type], b.x, b.y, b.width, b.height));
@@ -295,9 +373,25 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
             // Explosions
             const activeExplosions = [];
             explosionsRef.current.forEach(exp => {
-                if (exp.anim < 20) {
-                    context.drawImage(loadedImages['explosao'], exp.x, exp.y, 50, 50);
-                    exp.anim++;
+                if (exp.anim < 9) { // 9 frames for a 3x3 grid
+                    const frameWidth = loadedImages['explosao'].width / 3;
+                    const frameHeight = loadedImages['explosao'].height / 3;
+                    
+                    const frame = exp.anim;
+                    const sx = (frame % 3) * frameWidth;
+                    const sy = Math.floor(frame / 3) * frameHeight;
+
+                    context.drawImage(
+                        loadedImages['explosao'],
+                        sx, sy, frameWidth, frameHeight, // Source rectangle
+                        exp.x, exp.y, 50, 50              // Destination rectangle
+                    );
+
+                    exp.animCounter++;
+                    if (exp.animCounter >= exp.animDelay) {
+                        exp.anim++;
+                        exp.animCounter = 0;
+                    }
                     activeExplosions.push(exp);
                 }
             });

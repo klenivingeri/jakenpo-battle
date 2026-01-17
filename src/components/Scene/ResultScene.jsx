@@ -1,12 +1,12 @@
   export const ResultScene = ({gameStats, setScene}) => {
-  return <div className="botao-pulsar" style={{
+  return <div  style={{
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     padding: '20px',
     textAlign: 'center',
     width: '100%',
-    height: '100%'
+    height: '100%',
   }}>
     <div style={{
       display: 'flex',
@@ -15,9 +15,11 @@
       justifyContent: 'center',
       border: '3px solid black',
       width: '100%',
-      height: '100%'
+      height: '100%',
+      background: 'white',
+      opacity: 0.9,
     }}>
-      <div>
+      <div className="botao-pulsar">
         {gameStats.result === 'win' && (
           <div>
             {Array.from({ length: gameStats.stars }).map((_, i) => (
@@ -30,8 +32,8 @@
         <p>Vitórias: {gameStats.wins}</p>
         <p>Derrotas: {gameStats.losses}</p>
         <p>Empates: {gameStats.draws}</p>
-        <button className='button_footer' style={{ padding: '10px', marginTop: '20px', fontSize: '1rem' }} onClick={() => setScene('Init')}>
-          Voltar para o menu
+        <button className='button_footer' style={{ padding: '10px', marginTop: '20px', fontSize: '1.8rem' }} onClick={() => setScene('Init')}>
+          Ir para o menu
         </button>
       </div>
     </div>

@@ -14,10 +14,43 @@ const vibrate = (pattern = 50) => {
 };
 
 function App() {
+  const [bgPos, setBgPos] = useState({ x: 50, y: 50 });
   const [player, setPlayer] = useState({ hp: 100, atk: 10 });
   const [enemy, setEnemy] = useState({ hp: 100, atk: 10 });
   const [disableButtonPlayer, setdisableButtonPlayer] = useState(false);
   const [scene, setScene] = useState('Start');
+
+    useEffect(() => {
+    const handleOrientation = (event) => {
+      const gamma = event.gamma || 0; // esquerda / direita (-90 a 90)
+      const beta = event.beta || 0;   // frente / trás (-180 a 180)
+
+      // limita valores pra não exagerar
+      const x = 50 + gamma * 0.2;
+      const y = 50 + beta * 0.1;
+
+      setBgPos({
+        x: Math.max(0, Math.min(100, x)),
+        y: Math.max(0, Math.min(100, y))
+      });
+    };
+
+    // iOS precisa de permissão
+    if (typeof DeviceOrientationEvent?.requestPermission === 'function') {
+      DeviceOrientationEvent.requestPermission().then((permission) => {
+        if (permission === 'granted') {
+          window.addEventListener('deviceorientation', handleOrientation);
+        }
+      });
+    } else {
+      window.addEventListener('deviceorientation', handleOrientation);
+    }
+
+    return () => {
+      window.removeEventListener('deviceorientation', handleOrientation);
+    };
+  }, []);
+
 
   const [roomCurrent, setRoomCurrent] = useState(() => {
     const saved = localStorage.getItem('roomCurrent');
@@ -39,7 +72,7 @@ function App() {
 
   useEffect(() => {
     backgroundMusic.current.loop = true;
-    backgroundMusic.current.volume = 0.1; // Volume 20
+    backgroundMusic.current.volume = 0.07; // Volume 20
 
     return () => {
       backgroundMusic.current.pause();
@@ -54,7 +87,7 @@ function App() {
 
   const handleInit = () => {
     setScene('Init');
-    toggleFullScreen()
+    //toggleFullScreen()
     backgroundMusic.current.play()
   }
 
@@ -143,7 +176,7 @@ function App() {
           alignItems: 'center',
           justifyContent: 'center',
         }}>
-          <img src="/assets/logo.png" />
+          <img src="/assets/logo2.png" />
           <button className='button_footer' onClick={() => handleInit()}> Iniciar</button>
         </div>
       </div>),
@@ -173,7 +206,14 @@ function App() {
   };
 
   return <div className='app-container'>
-    <div className='game-screen'>
+    <div className='game-screen' style={{
+        backgroundImage: 'url(/assets/background/vila.gif)',
+        backgroundSize: 'cover',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: `${bgPos.x}% ${bgPos.y}%`,
+        width: '100%',
+        height: '100vh'
+      }}>
       {stateScene[scene]}
     </div>
   </div>
