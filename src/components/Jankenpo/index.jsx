@@ -1,6 +1,16 @@
 import React, { useRef, useEffect, useState } from 'react';
 import './Jankenpo.css';
 
+
+
+/**
+ * // spawn bullet do inimigo
+ * // saida do bullet player
+ * 
+ * 
+ */
+
+
 import stoneImgSrc from '/assets/1_pedra.png';
 import paperImgSrc from '/assets/2_papel.png';
 import scissorsImgSrc from '/assets/3_tesoura.png';
@@ -146,7 +156,7 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
                 const newBullet = {
                     type: newType,
                     x: canvasRef.current.width / 2 - 25,
-                    y: 0, // spawn do inimigo
+                    y: 0, // spawn bullet do inimigo
                     width: 50,
                     height: 50,
                     active: true,
@@ -169,7 +179,7 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
             const newBullet = {
                 type: player.bulletType,
                 x: canvasRef.current.width / 2 - 25,
-                y: canvasRef.current.height - 120, //saida do bullet player
+                y: canvasRef.current.height - 30, //saida do bullet player
                 width: 50,
                 height: 50,
                 active: true,
@@ -277,7 +287,7 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
             const activePlayerBullets = [];
             playerBulletsRef.current.forEach(pBullet => {
                 if (pBullet.active) {
-                    if (pBullet.y < +30) { // Bullet has gone 100px off the top of the screen
+                    if (pBullet.y < +10) { // Bullet has gone 100px off the top of the screen
                         pBullet.active = false; // Deactivate it
                         setEnemy(e => ({ ...e, hp: e.hp - player.atk })); // Enemy loses HP
                     } else {
@@ -289,11 +299,14 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
             const activeEnemyBullets = [];
             enemyBulletsRef.current.forEach(eBullet => {
                 if (eBullet.active) {
-                    if (eBullet.y > canvas.height - 100) { // Deactivate if it goes 100px off-screen
+                    if (eBullet.y > canvas.height - 10) { // Deactivate if it goes 100px off-screen
                         eBullet.active = false; // Deactivate if it goes off-screen
                         setPlayer(p => ({ ...p, hp: p.hp - enemy.atk }));
                         handleCollisionVibration('player_damaged');
-                        setExplosions(prev => [...prev, { x: eBullet.x, y: eBullet.y - 50, anim: 0, id: Date.now(), animCounter: 0, animDelay: 2 }]);
+                        setExplosions(prev => {
+                            console.log('Enemy bullet explosion triggered at:', { x: eBullet.x, y: eBullet.y - 25 });
+                            return [...prev, { x: eBullet.x, y: eBullet.y - 40, anim: 0, id: Date.now(), animCounter: 0, animDelay: 2 }];
+                        });
                     } else {
                         activeEnemyBullets.push(eBullet);
                     }
