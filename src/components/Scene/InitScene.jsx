@@ -21,7 +21,7 @@ export const InitScene = ({ rooms, setRoomCurrent, setScene, roomStars }) => {
 
   return (
     <div className='container_game_scene'>
-      <div style={{ flex: 1, overflowY: 'auto', height:'1000px' }}>
+      <div style={{ flex: 1, overflowY: 'auto', height:'100%' }}>
         <div className='init_container_grid'>
 
           {rooms.map((room, index) => {

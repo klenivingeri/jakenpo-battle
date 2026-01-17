@@ -3,12 +3,12 @@
     flex-grow: 1; /* Faz o container crescer e ocupar o espaço */
     position: relative; /* Necessário para o posicionamento do overlay de stats */
     z-index: 2;
+    height: 100%;
   }
   
   canvas {
     display: block; /* Remove espaço extra abaixo do canvas */
     width: 100%;
     height: 100%;
-
   }
   

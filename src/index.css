@@ -14,10 +14,10 @@
 
 /* 3. Enable keyword animations */
 @media (prefers-reduced-motion: no-preference) {
-  html {
+  html, body {
+    height: 100%;
     interpolate-size: allow-keywords;
-  }
-}
+  }}
 
 body {
   /* 4. Add accessible line-height */

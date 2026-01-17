@@ -20,36 +20,67 @@ function App() {
   const [disableButtonPlayer, setdisableButtonPlayer] = useState(false);
   const [scene, setScene] = useState('Start');
 
-    useEffect(() => {
-    const handleOrientation = (event) => {
-      const gamma = event.gamma || 0; // esquerda / direita (-90 a 90)
-      const beta = event.beta || 0;   // frente / trás (-180 a 180)
 
-      // limita valores pra não exagerar
+useEffect(() => {
+  // ⛔ ambiente sem window (SSR / build)
+  if (typeof window === 'undefined') return;
+
+  // ⛔ API não existe
+  if (!('DeviceOrientationEvent' in window)) {
+    console.log('DeviceOrientation não suportado');
+    return;
+  }
+
+  let rafId = null;
+  let enabled = true;
+
+  const handleOrientation = (event) => {
+    if (!enabled || rafId) return;
+
+    rafId = requestAnimationFrame(() => {
+      // alguns devices retornam null
+      const gamma = typeof event.gamma === 'number' ? event.gamma : 0;
+      const beta  = typeof event.beta === 'number' ? event.beta : 0;
+
       const x = 50 + gamma * 0.2;
       const y = 50 + beta * 0.1;
 
-      setBgPos({
-        x: Math.max(0, Math.min(100, x)),
-        y: Math.max(0, Math.min(100, y))
+      setBgPos(prev => {
+        const nx = Math.max(0, Math.min(100, x));
+        const ny = Math.max(0, Math.min(100, y));
+        if (prev.x === nx && prev.y === ny) return prev;
+        return { x: nx, y: ny };
       });
-    };
 
-    // iOS precisa de permissão
-    if (typeof DeviceOrientationEvent?.requestPermission === 'function') {
-      DeviceOrientationEvent.requestPermission().then((permission) => {
-        if (permission === 'granted') {
-          window.addEventListener('deviceorientation', handleOrientation);
-        }
-      });
-    } else {
-      window.addEventListener('deviceorientation', handleOrientation);
+      rafId = null;
+    });
+  };
+
+  const start = async () => {
+    try {
+      // iOS (precisa permissão explícita)
+      if (
+        typeof window.DeviceOrientationEvent?.requestPermission === 'function'
+      ) {
+        const permission = await window.DeviceOrientationEvent.requestPermission();
+        if (permission !== 'granted') return;
+      }
+
+      window.addEventListener('deviceorientation', handleOrientation, true);
+    } catch (err) {
+      console.warn('DeviceOrientation indisponível:', err);
     }
+  };
 
-    return () => {
-      window.removeEventListener('deviceorientation', handleOrientation);
-    };
-  }, []);
+  start();
+
+  return () => {
+    enabled = false;
+    window.removeEventListener('deviceorientation', handleOrientation, true);
+    if (rafId) cancelAnimationFrame(rafId);
+  };
+}, []);
+
 
 
   const [roomCurrent, setRoomCurrent] = useState(() => {
@@ -204,16 +235,16 @@ function App() {
       <ResultScene gameStats={gameStats} setScene={setScene} />
     ),
   };
-
+const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
   return <div className='app-container'>
     <div className='game-screen' style={{
-        backgroundImage: 'url(/assets/background/vila.gif)',
-        backgroundSize: 'cover',
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: `${bgPos.x}% ${bgPos.y}%`,
-        width: '100%',
-        height: '100vh'
-      }}>
+      backgroundImage: 'url(/assets/background/vila.gif)',
+      backgroundSize: 'cover',
+      backgroundRepeat: 'no-repeat',
+      backgroundPosition: `${clamp(bgPos.x, 45, 55)}% ${clamp(bgPos.y, 45, 55)}%
+      width: '100%',
+      height: '100vh'
+    }}>
       {stateScene[scene]}
     </div>
   </div>

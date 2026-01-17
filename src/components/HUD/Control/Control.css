@@ -1,8 +1,6 @@
 .container_control_hud {
   width: 100%;
   height: 106px;
-  position: fixed;
-  max-width: 600px;
   bottom: 0;
   z-index: 1;
   display: flex;
