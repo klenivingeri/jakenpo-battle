@@ -235,13 +235,14 @@ useEffect(() => {
       <ResultScene gameStats={gameStats} setScene={setScene} />
     ),
   };
-const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+  
   return <div className='app-container'>
     <div className='game-screen' style={{
       backgroundImage: 'url(/assets/background/vila.gif)',
       backgroundSize: 'cover',
       backgroundRepeat: 'no-repeat',
-      backgroundPosition: `${clamp(bgPos.x, 45, 55)}% ${clamp(bgPos.y, 45, 55)}%
+      backgroundPosition: `${clamp(bgPos.x, 45, 55)}% ${clamp(bgPos.y, 45, 55)}%`,
       width: '100%',
       height: '100vh'
     }}>
