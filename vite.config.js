@@ -23,9 +23,9 @@ export default defineConfig({
         theme_color: '#222222',
         background_color: '#222222',
         icons: [
-          {  src: '/assets/logo2.png', sizes: '192x192', type: 'image/png' },
-          {  src: '/assets/logo2.png', sizes: '512x512', type: 'image/png' },
-          {  src: '/assets/logo2.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+          {  src: '/vite.png', sizes: '192x192', type: 'image/png' },
+          {  src: '/vite.png', sizes: '512x512', type: 'image/png' },
+          {  src: '/vite.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
         ]
       }
     })
