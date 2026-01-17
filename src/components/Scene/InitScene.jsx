@@ -3,21 +3,6 @@ import './GameScene.css'
 import { useEffect, useState } from 'react';
 
 export const InitScene = ({ rooms, setRoomCurrent, setScene, roomStars }) => {
-  const [visibleRooms, setVisibleRooms] = useState([]);
-
-  useEffect(() => {
-    let timeouts = [];
-
-    rooms.forEach((_, index) => {
-      const t = setTimeout(() => {
-        setVisibleRooms(prev => [...prev, index]);
-      }, index * 35); // intervalo entre rooms
-
-      timeouts.push(t);
-    });
-
-    return () => timeouts.forEach(clearTimeout);
-  }, [rooms]);
 
   return (
     <div className='container_game_scene'>
@@ -25,20 +10,12 @@ export const InitScene = ({ rooms, setRoomCurrent, setScene, roomStars }) => {
         <div className='init_container_grid'>
 
           {rooms.map((room, index) => {
-            const isVisible = visibleRooms.includes(index);
-
             return (
               <button
                 key={room.id}
-                disabled={!isVisible || room.disableButton}
-                className={`init_item_grid init_button_footer ${
-                  isVisible ? 'botao-chegada' : ''
-                }`}
-                style={{
-                  visibility: isVisible ? 'visible' : 'hidden'
-                }}
+                disabled={room.disableButton}
+                className={'init_item_grid init_button_footer botao-chegada'}
                 onClick={() => {
-                  if (!isVisible) return;
                   setRoomCurrent(index);
                   setScene('Game');
                 }}
