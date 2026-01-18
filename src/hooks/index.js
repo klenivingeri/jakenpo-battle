@@ -1,2 +1,2 @@
-// Hooks customizados
+// Hooks personalizados
 export { useVibration } from './useVibration'

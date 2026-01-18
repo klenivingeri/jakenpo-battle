@@ -20,7 +20,7 @@ export const getGameResult = (playerChoice, enemyChoice) => {
   return winConditions[playerChoice] === enemyChoice ? 'win' : 'loss'
 }
 
-// Escolhe um tipo de bullet aleatório, evitando repetir mais de 2 vezes seguidas
+// Escolhe um tipo de bala aleatório, evitando repetir mais de 2 vezes seguidas
 export const selectRandomBulletType = (previousBullets = [], allTypes) => {
   let newType
   do {
@@ -32,7 +32,7 @@ export const selectRandomBulletType = (previousBullets = [], allTypes) => {
   return newType
 }
 
-// Cria uma nova entidade bullet
+// Cria uma nova entidade de bala
 export const createBullet = (type, x, y, width, height) => ({
   type,
   x,
@@ -45,7 +45,7 @@ export const createBullet = (type, x, y, width, height) => ({
   lastParticleY: y
 })
 
-// Atualiza a posição e escala de um bullet baseado no tempo
+// Atualiza a posição e escala de uma bala baseado no tempo
 export const updateBulletTransform = (bullet, deltaY, now, canvasWidth, animationDuration) => {
   bullet.y += deltaY
   

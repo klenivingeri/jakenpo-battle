@@ -15,10 +15,10 @@ function App() {
 
 
 useEffect(() => {
-  // ⛔ ambiente sem window (SSR / build)
+  // Ambiente sem window (SSR / build)
   if (typeof window === 'undefined') return;
 
-  // ⛔ API não existe
+  // API não existe
   if (!('DeviceOrientationEvent' in window)) {
     console.log('DeviceOrientation não suportado');
     return;
@@ -31,7 +31,7 @@ useEffect(() => {
     if (!enabled || rafId) return;
 
     rafId = requestAnimationFrame(() => {
-      // alguns devices retornam null
+      // Alguns dispositivos retornam null
       const gamma = typeof event.gamma === 'number' ? event.gamma : 0;
       const beta  = typeof event.beta === 'number' ? event.beta : 0;
 
@@ -51,7 +51,7 @@ useEffect(() => {
 
   const start = async () => {
     try {
-      // iOS (precisa permissão explícita)
+      // iOS (precisa de permissão explícita)
       if (
         typeof window.DeviceOrientationEvent?.requestPermission === 'function'
       ) {
@@ -127,10 +127,10 @@ useEffect(() => {
     // Spawn: fica mais rápido até o meio de cada bloco
     const baseSpawnInterval = Math.max(600, 3000 - (Math.min(resetIndex, 15) * 100));
 
-    // LÓGICA DE MULTIPLIER (Quantidade de balas)
-    // i < 29: Níveis 1-29 -> 1 bala, 
-    // i < 59: Níveis 30-59 -> 2 balas um bullet atras do outro
-    // i >= 59: Níveis 60+ -> 3 balas  um bullet atras do outro
+    // Lógica de MULTIPLICADOR (Quantidade de balas)
+    // i < 29: Níveis 1-29 -> 1 bala
+    // i < 59: Níveis 30-59 -> 2 balas uma atrás da outra
+    // i >= 59: Níveis 60+ -> 3 balas uma atrás da outra
     let bulletsPerSpawn = 1;
     if (i >= 29 && i < 59) bulletsPerSpawn = 2;
     else if (i >= 59) bulletsPerSpawn = 3;

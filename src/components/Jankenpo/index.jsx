@@ -13,7 +13,7 @@ import {
   createExplosion
 } from '../../utils/gameUtils';
 
-// Import das imagens
+// Importação das imagens
 import stoneImgSrc from '/assets/1_pedra.png';
 import paperImgSrc from '/assets/2_papel.png';
 import scissorsImgSrc from '/assets/3_tesoura.png';
@@ -46,7 +46,7 @@ const Jankenpo = ({
     const explosionAudioRef = useRef(new Audio(explosionSoundSrc));
     const { vibrateHit, vibrateDamage } = useVibration();
 
-    // Canvas resizing
+    // Redimensionamento do Canvas
     useEffect(() => {
         const canvas = canvasRef.current;
         const container = containerRef.current;
@@ -65,7 +65,7 @@ const Jankenpo = ({
         return () => resizeObserver.disconnect();
     }, []);
 
-    // Image loading
+    // Carregamento das imagens
     useEffect(() => {
         const images = {
             'pedra': stoneImgSrc,
@@ -93,7 +93,7 @@ const Jankenpo = ({
         });
     }, []);
 
-    // End game condition checker
+    // Verificador de condição de fim de jogo
     useEffect(() => {
         if (isGameOver) return;
 
@@ -108,7 +108,7 @@ const Jankenpo = ({
     }, [player.hp, enemy.hp, timeLeft, isGameOver, handleGameEnd, stats]);
 
 
-    // Game Timer
+    // Temporizador do jogo
      useEffect(() => {
         if (isGameOver || !loadedImages) return;
 
@@ -120,7 +120,7 @@ const Jankenpo = ({
     }, [isGameOver, loadedImages]);
 
 
-    // Enemy shooting logic
+    // Lógica de disparo do inimigo
     useEffect(() => {
         if (isGameOver || !loadedImages || !canvasRef.current) return;
 
@@ -142,7 +142,7 @@ const Jankenpo = ({
         return () => clearInterval(enemyShootInterval);
     }, [isGameOver, loadedImages, spawnInterval]);
 
-    // Player shooting logic
+    // Lógica de disparo do jogador
     useEffect(() => {
         if (isGameOver || !player.bulletType || !canvasRef.current) return;
 
@@ -160,7 +160,7 @@ const Jankenpo = ({
         }
     }, [isGameOver, player.bulletType, playerBullets.length, enemyBullets.length, handleBullet]);
     
-    // Refs for mutable game state
+    // Referências para estado mutável do jogo
     const playerBulletsRef = useRef(playerBullets);
     playerBulletsRef.current = playerBullets;
     const enemyBulletsRef = useRef(enemyBullets);
@@ -170,12 +170,12 @@ const Jankenpo = ({
     const particlesRef = useRef(particles);
     particlesRef.current = particles;
     
-    // Disable player button
+    // Desabilitar botão do jogador
     useEffect(() => {
         setdisableButtonPlayer(playerBullets.length >= enemyBullets.length + 1 || isGameOver);
     }, [playerBullets, enemyBullets, setdisableButtonPlayer, isGameOver]);
 
-    // Main game loop
+    // Loop principal do jogo
     useEffect(() => {
         if (!loadedImages || isGameOver) return;
         const canvas = canvasRef.current;
@@ -186,7 +186,7 @@ const Jankenpo = ({
             if(!canvas) return;
             context.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Move and scale bullets
+            // Mover e redimensionar balas
             const now = performance.now();
 
             playerBulletsRef.current.forEach(b => {
@@ -197,7 +197,7 @@ const Jankenpo = ({
                 updateBulletTransform(b, speed, now, canvas.width, DEFAULT_GAME_CONFIG.ANIMATION_DURATION);
             });
 
-            // --- Collision Detection ---
+            // --- Detecção de Colisão ---
             for (const pBullet of playerBulletsRef.current) {
                 if (!pBullet.active) continue;
 
@@ -226,7 +226,7 @@ const Jankenpo = ({
                             setStats(s => ({...s, draws: s.draws + 1}));
                         }
                         
-                        // If player bullet was destroyed, no need to check it against other enemy bullets
+                        // Se a bala do jogador foi destruída, não é necessário verificar contra outras balas inimigas
                         if (!pBullet.active) {
                             break; 
                         }
@@ -234,13 +234,14 @@ const Jankenpo = ({
                 }
             }
 
-            // --- Filtering and Boundary Checks ---
+            // --- Filtragem e Verificação de Limites ---
             const activePlayerBullets = [];
             playerBulletsRef.current.forEach(pBullet => {
                 if (pBullet.active) {
-                    if (pBullet.y < +10) { // Bullet has gone 100px off the top of the screen
-                        pBullet.active = false; // Deactivate it
-                        setEnemy(e => ({ ...e, hp: e.hp - player.atk })); // Enemy loses HP
+                    if (pBullet.y < +10) { // A bala saiu 100px do topo da tela
+                        pBullet.active = false; // Desativar a bala
+                        setExplosions(prev => [...prev, createExplosion(pBullet.x, pBullet.y - 10)]); // Criar explosão um pouco mais abaixo
+                        setEnemy(e => ({ ...e, hp: e.hp - player.atk })); // O inimigo perde HP
                     } else {
                         activePlayerBullets.push(pBullet);
                     }
@@ -262,7 +263,7 @@ const Jankenpo = ({
             });
 
 
-            // Trigger re-render if bullet counts change
+            // Disparar re-renderização se a contagem de balas mudar
             if (activePlayerBullets.length !== playerBulletsRef.current.length) {
                 setPlayerBullets(activePlayerBullets);
             }
@@ -270,10 +271,10 @@ const Jankenpo = ({
                 setEnemyBullets(activeEnemyBullets);
             }
 
-            // --- Particle System ---
+            // --- Sistema de Partículas ---
             const particleNow = performance.now();
 
-            // Spawn new particles
+            // Gerar novas partículas
             const spawnParticlesForBullet = (bullet) => {
                 const dist = Math.abs(bullet.y - bullet.lastParticleY);
                 if (dist > DEFAULT_GAME_CONFIG.PARTICLE_SPAWN_DISTANCE) {
@@ -289,7 +290,7 @@ const Jankenpo = ({
             playerBulletsRef.current.forEach(spawnParticlesForBullet);
             enemyBulletsRef.current.forEach(spawnParticlesForBullet);
 
-            // Update and draw particles
+            // Atualizar e desenhar partículas
             const activeParticles = [];
             particlesRef.current.forEach(p => {
                 const life = (particleNow - p.createdAt) / DEFAULT_GAME_CONFIG.PARTICLE_LIFETIME;
@@ -297,7 +298,7 @@ const Jankenpo = ({
                     activeParticles.push(p);
 
                     const scale = 1 - life;
-                    const size = (50 / 2) * scale; // 50 is bullet size
+                    const size = (50 / 2) * scale; // 50 é o tamanho da bala
 
                     context.globalAlpha = 1 - life;
                     context.fillStyle = 'white';
@@ -317,24 +318,24 @@ const Jankenpo = ({
             }
 
 
-            // --- Drawing ---
+            // --- Desenho ---
             playerBulletsRef.current.forEach(b => context.drawImage(loadedImages[b.type], b.x, b.y, b.width, b.height));
             
-            // Draw enemy bullets rotated
+            // Desenhar balas inimigas rotacionadas
             enemyBulletsRef.current.forEach(b => {
-                context.save(); // Save the current state
-                // Translate to the center of the image
+                context.save(); // Salvar o estado atual
+                // Transladar para o centro da imagem
                 context.translate(b.x + b.width / 2, b.y + b.height / 2);
-                context.rotate(Math.PI); // Rotate 180 degrees
-                // Draw the image, adjusting coordinates because of the translation
+                context.rotate(Math.PI); // Rotacionar 180 graus
+                // Desenhar a imagem, ajustando as coordenadas devido à translação
                 context.drawImage(loadedImages[b.type], -b.width / 2, -b.height / 2, b.width, b.height);
-                context.restore(); // Restore the state
+                context.restore(); // Restaurar o estado
             });
             
-            // Explosions
+            // Explosões
             const activeExplosions = [];
             explosionsRef.current.forEach(exp => {
-                if (exp.anim < 9) { // 9 frames for a 3x3 grid
+                if (exp.anim < 9) { // 9 quadros para uma grade 3x3
                     const frameWidth = loadedImages['explosao'].width / 3;
                     const frameHeight = loadedImages['explosao'].height / 3;
                     
@@ -344,8 +345,8 @@ const Jankenpo = ({
 
                     context.drawImage(
                         loadedImages['explosao'],
-                        sx, sy, frameWidth, frameHeight, // Source rectangle
-                        exp.x, exp.y, 50, 50              // Destination rectangle
+                        sx, sy, frameWidth, frameHeight, // Retângulo de origem
+                        exp.x, exp.y, 50, 50              // Retângulo de destino
                     );
 
                     exp.animCounter++;

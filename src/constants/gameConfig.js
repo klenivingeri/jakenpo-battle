@@ -1,4 +1,4 @@
-// Tipos de bullets/armas
+// Tipos de balas/armas
 export const BULLET_TYPES = {
   PEDRA: 'pedra',
   PAPEL: 'papel',
@@ -8,7 +8,7 @@ export const BULLET_TYPES = {
 // Array de todos os tipos
 export const ALL_BULLET_TYPES = Object.values(BULLET_TYPES)
 
-// Configuração dos bullets
+// Configuração das balas
 export const BULLET_CONFIG = {
   [BULLET_TYPES.PEDRA]: {
     label: 'Pedra',
