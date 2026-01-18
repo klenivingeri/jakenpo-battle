@@ -12,6 +12,10 @@ function App() {
   const [enemy, setEnemy] = useState({ hp: 10, atk: 1 });
   const [disableButtonPlayer, setdisableButtonPlayer] = useState(false);
   const [scene, setScene] = useState('Start');
+  const [isMusicOn, setIsMusicOn] = useState(() => {
+    const saved = localStorage.getItem('isMusicOn');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
 
   useEffect(() => {
     // Ambiente sem window (SSR / build)
@@ -107,6 +111,17 @@ function App() {
     };
   });
 
+    const backgroundMusic = useRef(new Audio('/assets/song/song-background.mp3'));
+
+  useEffect(() => {
+    backgroundMusic.current.loop = true;
+    backgroundMusic.current.volume = 0.05; // Volume 20
+
+    return () => {
+      backgroundMusic.current.pause();
+    };
+  }, []);
+
   useEffect(() => {
     localStorage.setItem('roomCurrent', JSON.stringify(roomCurrent));
     localStorage.setItem('gameStats', JSON.stringify(gameStats));
@@ -114,10 +129,13 @@ function App() {
     localStorage.setItem('playerRegistry', JSON.stringify(playerRegistry));
   }, [roomCurrent, gameStats, roomStars, playerRegistry]);
 
+  useEffect(() => {
+    localStorage.setItem('isMusicOn', JSON.stringify(isMusicOn));
+  }, [isMusicOn]);
+
   const handleInit = () => {
     setScene('Init');
     //toggleFullScreen()
-    backgroundMusic.current.play()
   }
 
   const rooms = useMemo(() => Array.from({ length: 100 }, (_, i) => {
@@ -205,6 +223,7 @@ function App() {
     
     }
     setGameStats({ ...stats, stars });
+    backgroundMusic.current.pause();
     setScene('EndResult');
   };
 
@@ -212,6 +231,10 @@ function App() {
     setPlayer(p => ({ ...p, hp: 10 })); // Reset player HP
     setEnemy(e => ({ ...e, hp: 10 })); // Reset enemy HP
     setActiveRoomIndex(index);
+    if(isMusicOn){
+      backgroundMusic.current.play();
+    }
+    
     setScene('Game');
   };
 
@@ -248,6 +271,8 @@ function App() {
         roomStars={roomStars}
         playerRegistry={playerRegistry}
         setPlayerRegistry={setPlayerRegistry}
+        isMusicOn={isMusicOn}
+        setIsMusicOn={setIsMusicOn}
       />
     ),
     Game: (

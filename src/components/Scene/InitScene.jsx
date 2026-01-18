@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Modal from '../shared/Modal';
 import { Footer } from '../Footer';
 import './GameScene.css';
 
@@ -48,7 +49,6 @@ const LevelBox = ({ level, xp }) => (
 );
 
 export const InitScene = ({ rooms, setRoomCurrent, setScene, roomStars, playerRegistry, setPlayerRegistry, setIsMusicOn, isMusicOn }) => {
-  const [showMenu, setShowMenu] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -131,63 +131,14 @@ export const InitScene = ({ rooms, setRoomCurrent, setScene, roomStars, playerRe
       <Footer setScene={setScene} />
 
       {/* Modal customizado para configurações */}
-      {isModalOpen && (
-        <div
-          style={{
-            position: 'fixed',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            backgroundColor: isDarkMode ? '#333' : '#fff',
-            color: isDarkMode ? '#fff' : '#000',
-            border: '2px solid black',
-            padding: '40px',
-            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-            zIndex: 1000,
-          }}
-        >
-          <button
-            onClick={() => setIsModalOpen(false)}
-            style={{
-              position: 'absolute',
-              top: '10px',
-              right: '10px',
-              background: 'none',
-              border: '1px solid black',
-              width: '30px',
-              height: '30px',
-              color: isDarkMode ? '#fff' : '#000',
-              fontSize: '1.2rem',
-              cursor: 'pointer',
-              color: 'red',
-
-            }}
-          >
-            ✖
-          </button>
-          <h2>Configurações</h2>
-          <div style={{ marginBottom: '10px' }}>
-            <label>
-              <input
-                type="checkbox"
-                checked={isDarkMode}
-                onChange={() => setIsDarkMode((prev) => !prev)}
-              />{' '}
-              Dark Mode
-            </label>
-          </div>
-          <div>
-            <label>
-              <input
-                type="checkbox"
-                checked={isMusicOn}
-                onChange={(e) => setIsMusicOn(e.target.checked)}
-              />{' '}
-              Música de Fundo
-            </label>
-          </div>
-        </div>
-      )}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        isDarkMode={isDarkMode}
+        setIsDarkMode={setIsDarkMode}
+        isMusicOn={isMusicOn}
+        setIsMusicOn={setIsMusicOn}
+      />
     </div>
   );
 };
