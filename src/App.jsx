@@ -15,8 +15,8 @@ const vibrate = (pattern = 50) => {
 
 function App() {
   const [bgPos, setBgPos] = useState({ x: 50, y: 50 });
-  const [player, setPlayer] = useState({ hp: 100, atk: 10 });
-  const [enemy, setEnemy] = useState({ hp: 100, atk: 10 });
+  const [player, setPlayer] = useState({ hp: 10, atk: 1 });
+  const [enemy, setEnemy] = useState({ hp: 10, atk: 1 });
   const [disableButtonPlayer, setdisableButtonPlayer] = useState(false);
   const [scene, setScene] = useState('Start');
 
@@ -148,8 +148,8 @@ useEffect(() => {
       speed: baseSpeed,
       spawnInterval: baseSpawnInterval,
       bulletsPerAction: bulletsPerSpawn, // Nova propriedade!
-      enemyAtk: 10,
-      enemyHp: 100,
+      enemyAtk: 1,
+      enemyHp: 10,
       disableButton: i > roomCurrent,
     };
   });
@@ -180,7 +180,7 @@ useEffect(() => {
   };
 
   const handleStartGame = (index) => {
-    setPlayer(p => ({ ...p, hp: 100 })); // Reset player HP
+    setPlayer(p => ({ ...p, hp: 10 })); // Reset player HP
     setEnemy(e => ({ ...e, hp: rooms[index].enemyHp })); // Reset enemy HP
     setActiveRoomIndex(index);
     setScene('Game');

@@ -21,7 +21,7 @@ export const Footer = ({ handleBullet, player, disableButtonPlayer }) => {
   return (
     <div className='container_control_hud'>
       <div className='container_hp_control_hud'>
-        <div className='hp_control_hud' style={{ width: `${player.hp}%` }}></div>
+        <div className='hp_control_hud' style={{ width: `${player.hp * 10}%` }}>{player.hp * 10}</div>
         <div className='hp_ghost_control_hud'></div>
       </div>
       <div className='container_button_control_hud'>
