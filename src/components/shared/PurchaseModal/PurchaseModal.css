@@ -4,8 +4,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(5px);
+  background: rgba(0, 0, 0, 0.85);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -23,15 +22,18 @@
 }
 
 .purchase-modal-content {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  border-radius: 20px;
-  border: 3px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  background: #ffffff;
+  border: 6px solid #000000;
+  box-shadow: 
+    0 0 0 2px #ffffff,
+    0 0 0 8px #000000,
+    8px 8px 0 0 rgba(0, 0, 0, 0.3);
   max-width: 500px;
   width: 90%;
   max-height: 90vh;
   overflow-y: auto;
   animation: slideUp 0.3s ease;
+  image-rendering: pixelated;
 }
 
 @keyframes slideUp {
@@ -47,39 +49,50 @@
 
 .purchase-modal-header {
   padding: 20px;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 6px solid #000000;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(0, 0, 0, 0.2);
+  background: #FF0000;
 }
 
 .purchase-modal-header h2 {
   margin: 0;
-  color: #fff;
+  color: #ffffff;
   font-size: 1.5rem;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  text-shadow: 
+    3px 3px 0 #000000;
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-transform: uppercase;
 }
 
 .purchase-modal-close {
-  background: rgba(231, 76, 60, 0.2);
-  border: 2px solid #e74c3c;
-  color: #e74c3c;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  font-size: 1.2rem;
+  background: #ffffff;
+  border: 4px solid #000000;
+  color: #000000;
+  width: 40px;
+  height: 40px;
+  font-size: 1.5rem;
+  font-weight: bold;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.1s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 4px 4px 0 0 rgba(0, 0, 0, 0.3);
 }
 
 .purchase-modal-close:hover {
-  background: #e74c3c;
-  color: white;
-  transform: rotate(90deg);
+  background: #FF0000;
+  color: #ffffff;
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 0 rgba(0, 0, 0, 0.3);
+}
+
+.purchase-modal-close:active {
+  transform: translate(4px, 4px);
+  box-shadow: none;
 }
 
 .purchase-modal-body {
@@ -90,19 +103,20 @@
 }
 
 .purchase-room-info {
-  background: rgba(52, 152, 219, 0.1);
-  border: 2px solid rgba(52, 152, 219, 0.3);
-  border-radius: 12px;
+  background: #00BFFF;
+  border: 6px solid #000000;
   padding: 16px;
   text-align: center;
+  box-shadow: 4px 4px 0 0 rgba(0, 0, 0, 0.3);
 }
 
 .purchase-room-number {
   font-size: 2rem;
   font-weight: bold;
-  color: #3498db;
-  text-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
+  color: #ffffff;
+  text-shadow: 3px 3px 0 #000000;
   margin-bottom: 12px;
+  letter-spacing: 2px;
 }
 
 .purchase-room-details {
@@ -110,39 +124,42 @@
   gap: 16px;
   justify-content: center;
   font-size: 1rem;
-  color: #95a5a6;
+  color: #000000;
+  font-weight: bold;
 }
 
 .purchase-cost-section {
-  background: rgba(241, 196, 15, 0.1);
-  border: 2px solid rgba(241, 196, 15, 0.3);
-  border-radius: 12px;
+  background: #FFD700;
+  border: 6px solid #000000;
   padding: 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  box-shadow: 4px 4px 0 0 rgba(0, 0, 0, 0.3);
 }
 
 .purchase-cost-label {
   font-size: 1.2rem;
-  color: #f1c40f;
-  font-weight: 600;
+  color: #000000;
+  font-weight: bold;
+  text-transform: uppercase;
 }
 
 .purchase-cost-value {
   font-size: 1.8rem;
   font-weight: bold;
-  color: #f1c40f;
-  text-shadow: 0 0 15px rgba(241, 196, 15, 0.6);
+  color: #000000;
+  text-shadow: 2px 2px 0 rgba(255, 255, 255, 0.5);
 }
 
 .purchase-player-status {
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 12px;
+  background: #E0E0E0;
+  border: 6px solid #000000;
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  box-shadow: inset 2px 2px 0 0 rgba(0, 0, 0, 0.2);
 }
 
 .purchase-player-gold,
@@ -153,35 +170,35 @@
 }
 
 .purchase-label {
-  color: #95a5a6;
+  color: #000000;
   font-size: 1rem;
+  font-weight: bold;
 }
 
 .purchase-value {
-  color: #3498db;
+  color: #0066FF;
   font-size: 1.2rem;
   font-weight: bold;
 }
 
 .purchase-value-missing {
-  color: #e74c3c;
+  color: #FF0000;
   font-size: 1.2rem;
   font-weight: bold;
 }
 
 .purchase-progress-container {
   width: 100%;
-  height: 32px;
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 16px;
+  height: 36px;
+  background: #808080;
   overflow: hidden;
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  border: 6px solid #000000;
   position: relative;
+  box-shadow: inset 3px 3px 0 0 rgba(0, 0, 0, 0.3);
 }
 
 .purchase-progress-bar {
   height: 100%;
-  border-radius: 16px;
   transition: width 0.5s ease;
   display: flex;
   align-items: center;
@@ -197,13 +214,14 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
+  background: repeating-linear-gradient(
     90deg,
     transparent,
-    rgba(255, 255, 255, 0.3),
-    transparent
+    transparent 10px,
+    rgba(255, 255, 255, 0.3) 10px,
+    rgba(255, 255, 255, 0.3) 20px
   );
-  animation: shimmer 2s infinite;
+  animation: shimmer 1s linear infinite;
 }
 
 @keyframes shimmer {
@@ -216,73 +234,75 @@
 }
 
 .purchase-progress-text {
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: bold;
-  color: white;
-  text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+  color: #ffffff;
+  text-shadow: 2px 2px 0 #000000;
   position: relative;
   z-index: 1;
 }
 
 .purchase-button {
   width: 100%;
-  padding: 16px;
-  border: none;
-  border-radius: 12px;
+  padding: 18px;
+  border: 6px solid #000000;
   font-size: 1.2rem;
   font-weight: bold;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.1s ease;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
+  box-shadow: 4px 4px 0 0 rgba(0, 0, 0, 0.5);
 }
 
 .purchase-button-buy {
-  background: linear-gradient(135deg, #2ecc71, #27ae60);
-  color: white;
-  box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
-  animation: pulse-glow 2s infinite;
+  background: #00FF00;
+  color: #000000;
+  animation: pulse-pixel 1.5s infinite;
 }
 
-@keyframes pulse-glow {
+@keyframes pulse-pixel {
   0%, 100% {
-    box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
+    background: #00FF00;
   }
   50% {
-    box-shadow: 0 6px 25px rgba(46, 204, 113, 0.6);
+    background: #00DD00;
   }
 }
 
 .purchase-button-buy:hover {
-  background: linear-gradient(135deg, #27ae60, #229954);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(46, 204, 113, 0.6);
+  background: #00DD00;
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 0 rgba(0, 0, 0, 0.5);
 }
 
 .purchase-button-buy:active {
-  transform: translateY(0);
+  transform: translate(4px, 4px);
+  box-shadow: none;
 }
 
 .purchase-insufficient {
   text-align: center;
   padding: 20px;
-  background: rgba(231, 76, 60, 0.1);
-  border: 2px solid rgba(231, 76, 60, 0.3);
-  border-radius: 12px;
+  background: #FF6B6B;
+  border: 6px solid #000000;
+  box-shadow: 4px 4px 0 0 rgba(0, 0, 0, 0.3);
 }
 
 .purchase-insufficient p {
   margin: 8px 0;
-  color: #e74c3c;
-  font-weight: 600;
+  color: #000000;
+  font-weight: bold;
   font-size: 1.1rem;
+  text-shadow: 2px 2px 0 rgba(255, 255, 255, 0.3);
 }
 
 .purchase-hint {
   font-size: 0.9rem !important;
-  color: #95a5a6 !important;
-  font-weight: normal !important;
+  color: #ffffff !important;
+  font-weight: bold !important;
   margin-top: 12px !important;
+  text-shadow: 2px 2px 0 #000000 !important;
 }
 
 /* Responsividade */

@@ -78,8 +78,8 @@ export const PurchaseModal = ({
               style={{ 
                 width: `${Math.min((playerGold / room.unlockCost) * 100, 100)}%`,
                 background: canAfford 
-                  ? 'linear-gradient(90deg, #2ecc71, #27ae60)' 
-                  : 'linear-gradient(90deg, #e74c3c, #f39c12)'
+                  ? '#00FF00' 
+                  : '#FF6B00'
               }}
             >
               <span className="purchase-progress-text">
