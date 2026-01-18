@@ -6,13 +6,6 @@ import { InitScene } from './components/Scene/InitScene';
 import { ResultScene } from './components/Scene/ResultScene';
 import { toggleFullScreen } from './help/fullScreen';
 
-// Função utilitária para facilitar
-const vibrate = (pattern = 50) => {
-  if (navigator.vibrate) {
-    navigator.vibrate(pattern);
-  }
-};
-
 function App() {
   const [bgPos, setBgPos] = useState({ x: 50, y: 50 });
   const [player, setPlayer] = useState({ hp: 10, atk: 1 });

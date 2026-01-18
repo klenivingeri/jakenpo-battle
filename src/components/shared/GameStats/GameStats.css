@@ -1,0 +1,49 @@
+.game-stats {
+  position: absolute;
+  top: 24px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-family: monospace;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(5px);
+}
+
+.game-stats-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.game-stats-label {
+  font-weight: bold;
+  color: #aaa;
+}
+
+.game-stats-value {
+  color: #fff;
+}
+
+.game-stats-time {
+  color: #ffeb3b;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.game-stats-wins {
+  color: #4caf50;
+}
+
+.game-stats-losses {
+  color: #f44336;
+}
+
+.game-stats-draws {
+  color: #ff9800;
+}

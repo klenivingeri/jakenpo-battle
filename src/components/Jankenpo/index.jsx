@@ -1,41 +1,38 @@
 import React, { useRef, useEffect, useState } from 'react';
 import './Jankenpo.css';
+import { useVibration } from '../../hooks/useVibration';
+import { GameStats } from '../shared/GameStats';
+import { BULLET_CONFIG, GAME_IMAGES, GAME_SOUNDS, DEFAULT_GAME_CONFIG } from '../../constants/gameConfig';
+import {
+  checkCollision,
+  getGameResult,
+  selectRandomBulletType,
+  createBullet,
+  updateBulletTransform,
+  createParticle,
+  createExplosion
+} from '../../utils/gameUtils';
 
-
-
-/**
- * // spawn bullet do inimigo
- * // saida do bullet player
- * 
- * 
- */
-
-
+// Import das imagens
 import stoneImgSrc from '/assets/1_pedra.png';
 import paperImgSrc from '/assets/2_papel.png';
 import scissorsImgSrc from '/assets/3_tesoura.png';
 import explosionImgSrc from '/assets/explosao.png';
-
-// Import the audio file
 import explosionSoundSrc from '/assets/song/song-explosion.mp3';
 
-// Função utilitária para facilitar
-const vibrate = (pattern = 50) => {
-  if (navigator.vibrate) {
-    navigator.vibrate(pattern);
-  }
-};
-
-// --- NO MOMENTO DA COLISÃO ---
-const handleCollisionVibration = (type) => {
-  if (type === 'hit_enemy') {
-    vibrate(40); // Explosão curta de sucesso
-  } else if (type === 'player_damaged') {
-    vibrate([100, 50, 100]); // Vibração dupla de erro/dano
-  }
-};
-
-const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisableButtonPlayer, setScene, handleGameEnd, gameDuration = 30, speed = 2, spawnInterval = 2000 }) => {
+const Jankenpo = ({ 
+    handleBullet, 
+    player, 
+    setPlayer, 
+    enemy, 
+    setEnemy, 
+    setdisableButtonPlayer, 
+    setScene, 
+    handleGameEnd, 
+    gameDuration = DEFAULT_GAME_CONFIG.GAME_DURATION, 
+    speed = DEFAULT_GAME_CONFIG.BULLET_SPEED, 
+    spawnInterval = DEFAULT_GAME_CONFIG.SPAWN_INTERVAL 
+}) => {
     const canvasRef = useRef(null);
     const containerRef = useRef(null);
     const [enemyBullets, setEnemyBullets] = useState([]);
@@ -47,22 +44,7 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
     const [loadedImages, setLoadedImages] = useState(null);
     const [isGameOver, setIsGameOver] = useState(false);
     const explosionAudioRef = useRef(new Audio(explosionSoundSrc));
-
-    // Audio ref
-
-
-    // Helper functions
-    const checkCollision = (a, b) => a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
-
-    const getResult = (playerChoice, enemyChoice) => {
-        if (playerChoice === enemyChoice) return 'draw';
-        if (
-            (playerChoice === 'pedra' && enemyChoice === 'tesoura') ||
-            (playerChoice === 'papel' && enemyChoice === 'pedra') ||
-            (playerChoice === 'tesoura' && enemyChoice === 'papel')
-        ) return 'win';
-        return 'loss';
-    };
+    const { vibrateHit, vibrateDamage } = useVibration();
 
     // Canvas resizing
     useEffect(() => {
@@ -144,26 +126,15 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
 
         const enemyShootInterval = setInterval(() => {
             setEnemyBullets(prevBullets => {
-                const bulletTypes = ['pedra', 'papel', 'tesoura'];
-                let newType;
-                do {
-                    newType = bulletTypes[Math.floor(Math.random() * bulletTypes.length)];
-                } while (
-                    prevBullets.length > 1 &&
-                    prevBullets.slice(-2).every(b => b.type === newType)
+                const bulletTypes = Object.keys(BULLET_CONFIG);
+                const newType = selectRandomBulletType(prevBullets, bulletTypes);
+                const newBullet = createBullet(
+                    newType,
+                    canvasRef.current.width / 2 - DEFAULT_GAME_CONFIG.BULLET_SIZE / 2,
+                    0,
+                    DEFAULT_GAME_CONFIG.BULLET_SIZE,
+                    DEFAULT_GAME_CONFIG.BULLET_SIZE
                 );
-    
-                const newBullet = {
-                    type: newType,
-                    x: canvasRef.current.width / 2 - 25,
-                    y: 0, // spawn bullet do inimigo
-                    width: 50,
-                    height: 50,
-                    active: true,
-                    id: Date.now(),
-                    createdAt: performance.now(),
-                    lastParticleY: 0
-                };
                 return [...prevBullets, newBullet];
             });
         }, spawnInterval);
@@ -176,19 +147,16 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
         if (isGameOver || !player.bulletType || !canvasRef.current) return;
 
         if (playerBullets.length < enemyBullets.length + 1) {
-            const newBullet = {
-                type: player.bulletType,
-                x: canvasRef.current.width / 2 - 25,
-                y: canvasRef.current.height - 30, //saida do bullet player
-                width: 50,
-                height: 50,
-                active: true,
-                id: Date.now(),
-                createdAt: performance.now(),
-                lastParticleY: canvasRef.current.height - 50
-            };
+            const newBullet = createBullet(
+                player.bulletType,
+                canvasRef.current.width / 2 - DEFAULT_GAME_CONFIG.BULLET_SIZE / 2,
+                canvasRef.current.height - 30,
+                DEFAULT_GAME_CONFIG.BULLET_SIZE,
+                DEFAULT_GAME_CONFIG.BULLET_SIZE
+            );
+            newBullet.lastParticleY = canvasRef.current.height - 50;
             setPlayerBullets(prev => [...prev, newBullet]);
-            handleBullet(null, 'player'); // Reset bullet type only after successfully shooting
+            handleBullet(null, 'player');
         }
     }, [isGameOver, player.bulletType, playerBullets.length, enemyBullets.length, handleBullet]);
     
@@ -220,30 +188,13 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
 
             // Move and scale bullets
             const now = performance.now();
-            const animationDuration = 200; // milliseconds
 
             playerBulletsRef.current.forEach(b => {
-                b.y -= speed;
-                const age = now - b.createdAt;
-                const scale = Math.min(1, age / animationDuration);
-                const currentSize = 50 * scale;
-
-                // Adjust x to keep the bullet centered as it scales
-                b.x = (canvas.width / 2) - (currentSize / 2);
-                b.width = currentSize;
-                b.height = currentSize;
+                updateBulletTransform(b, -speed, now, canvas.width, DEFAULT_GAME_CONFIG.ANIMATION_DURATION);
             });
 
             enemyBulletsRef.current.forEach(b => {
-                b.y += speed;
-                const age = now - b.createdAt;
-                const scale = Math.min(1, age / animationDuration);
-                const currentSize = 50 * scale;
-
-                // Adjust x to keep the bullet centered as it scales
-                b.x = (canvas.width / 2) - (currentSize / 2);
-                b.width = currentSize;
-                b.height = currentSize;
+                updateBulletTransform(b, speed, now, canvas.width, DEFAULT_GAME_CONFIG.ANIMATION_DURATION);
             });
 
             // --- Collision Detection ---
@@ -254,22 +205,22 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
                     if (!eBullet.active) continue;
 
                     if (checkCollision(pBullet, eBullet)) {
-                        const result = getResult(pBullet.type, eBullet.type);
-                        setExplosions(prev => [...prev, { x: pBullet.x, y: pBullet.y - 25, anim: 0, id: Date.now(), animCounter: 0, animDelay: 2 }]);
-                        // Play explosion sound // 25 é a explosao pra frent do bullet do player
+                        const result = getGameResult(pBullet.type, eBullet.type);
+                        setExplosions(prev => [...prev, createExplosion(pBullet.x, pBullet.y - 25)]);
+                        
                         if (explosionAudioRef.current) {
-                            explosionAudioRef.current.currentTime = 0; // Restart if already playing
+                            explosionAudioRef.current.currentTime = 0;
                             explosionAudioRef.current.play().catch(e => console.error("Error playing sound:", e));
                         }
 
                         if (result === 'win') {
-                            eBullet.active = false; // Enemy bullet destroyed
+                            eBullet.active = false;
                             setStats(s => ({...s, wins: s.wins + 1}));
-                            handleCollisionVibration('hit_enemy');
+                            vibrateHit();
                         } else if (result === 'loss') {
-                            pBullet.active = false; // Player bullet destroyed
+                            pBullet.active = false;
                             setStats(s => ({...s, losses: s.losses + 1}));
-                        } else { // draw
+                        } else {
                             pBullet.active = false;
                             eBullet.active = false;
                             setStats(s => ({...s, draws: s.draws + 1}));
@@ -299,14 +250,11 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
             const activeEnemyBullets = [];
             enemyBulletsRef.current.forEach(eBullet => {
                 if (eBullet.active) {
-                    if (eBullet.y > canvas.height - 10) { // Deactivate if it goes 100px off-screen
-                        eBullet.active = false; // Deactivate if it goes off-screen
+                    if (eBullet.y > canvas.height - 10) {
+                        eBullet.active = false;
                         setPlayer(p => ({ ...p, hp: p.hp - enemy.atk }));
-                        handleCollisionVibration('player_damaged');
-                        setExplosions(prev => {
-                            console.log('Enemy bullet explosion triggered at:', { x: eBullet.x, y: eBullet.y - 25 });
-                            return [...prev, { x: eBullet.x, y: eBullet.y - 40, anim: 0, id: Date.now(), animCounter: 0, animDelay: 2 }];
-                        });
+                        vibrateDamage();
+                        setExplosions(prev => [...prev, createExplosion(eBullet.x, eBullet.y - 40)]);
                     } else {
                         activeEnemyBullets.push(eBullet);
                     }
@@ -328,13 +276,13 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
             // Spawn new particles
             const spawnParticlesForBullet = (bullet) => {
                 const dist = Math.abs(bullet.y - bullet.lastParticleY);
-                if (dist > 20) {
-                    particlesRef.current.push({
-                        x: bullet.x + bullet.width / 2,
-                        y: bullet.y + bullet.height / 2,
-                        createdAt: particleNow,
-                        id: Math.random()
-                    });
+                if (dist > DEFAULT_GAME_CONFIG.PARTICLE_SPAWN_DISTANCE) {
+                    particlesRef.current.push(
+                        createParticle(
+                            bullet.x + bullet.width / 2,
+                            bullet.y + bullet.height / 2
+                        )
+                    );
                     bullet.lastParticleY = bullet.y;
                 }
             };
@@ -344,7 +292,7 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
             // Update and draw particles
             const activeParticles = [];
             particlesRef.current.forEach(p => {
-                const life = (particleNow - p.createdAt) / 500; // 0 -> 1
+                const life = (particleNow - p.createdAt) / DEFAULT_GAME_CONFIG.PARTICLE_LIFETIME;
                 if (life < 1) {
                     activeParticles.push(p);
 
@@ -422,12 +370,12 @@ const Jankenpo = ({ handleBullet, player, setPlayer, enemy, setEnemy, setdisable
 
     return (
         <div ref={containerRef} className="canvas-container">
-            <div style={{position: 'absolute', display:'flex', flexDirection: 'column',top: 24, left: 10, color: 'black', padding: 5, borderRadius: 5}}>
-                <div>Time: {timeLeft}</div>
-                <div>Wins: {stats.wins} </div>
-                <div>Losses: {stats.losses}</div>
-                <div>Draws: {stats.draws}</div>
-            </div>
+            <GameStats 
+                timeLeft={timeLeft}
+                wins={stats.wins}
+                losses={stats.losses}
+                draws={stats.draws}
+            />
             <canvas ref={canvasRef} />
             
         </div>
