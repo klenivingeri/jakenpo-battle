@@ -13,66 +13,65 @@ function App() {
   const [disableButtonPlayer, setdisableButtonPlayer] = useState(false);
   const [scene, setScene] = useState('Start');
 
+  useEffect(() => {
+    // Ambiente sem window (SSR / build)
+    if (typeof window === 'undefined') return;
 
-useEffect(() => {
-  // Ambiente sem window (SSR / build)
-  if (typeof window === 'undefined') return;
-
-  // API não existe
-  if (!('DeviceOrientationEvent' in window)) {
-    console.log('DeviceOrientation não suportado');
-    return;
-  }
-
-  let rafId = null;
-  let enabled = true;
-
-  const handleOrientation = (event) => {
-    if (!enabled || rafId) return;
-
-    rafId = requestAnimationFrame(() => {
-      // Alguns dispositivos retornam null
-      const gamma = typeof event.gamma === 'number' ? event.gamma : 0;
-      const beta  = typeof event.beta === 'number' ? event.beta : 0;
-
-      const x = 50 + gamma * 0.2;
-      const y = 50 + beta * 0.1;
-
-      setBgPos(prev => {
-        const nx = Math.max(0, Math.min(100, x));
-        const ny = Math.max(0, Math.min(100, y));
-        if (prev.x === nx && prev.y === ny) return prev;
-        return { x: nx, y: ny };
-      });
-
-      rafId = null;
-    });
-  };
-
-  const start = async () => {
-    try {
-      // iOS (precisa de permissão explícita)
-      if (
-        typeof window.DeviceOrientationEvent?.requestPermission === 'function'
-      ) {
-        const permission = await window.DeviceOrientationEvent.requestPermission();
-        if (permission !== 'granted') return;
-      }
-
-      window.addEventListener('deviceorientation', handleOrientation, true);
-    } catch (err) {
-      console.warn('DeviceOrientation indisponível:', err);
+    // API não existe
+    if (!('DeviceOrientationEvent' in window)) {
+      console.log('DeviceOrientation não suportado');
+      return;
     }
-  };
 
-  start();
+    let rafId = null;
+    let enabled = true;
 
-  return () => {
-    enabled = false;
-    window.removeEventListener('deviceorientation', handleOrientation, true);
-    if (rafId) cancelAnimationFrame(rafId);
-  };
-}, []);
+    const handleOrientation = (event) => {
+      if (!enabled || rafId) return;
+
+      rafId = requestAnimationFrame(() => {
+        // Alguns dispositivos retornam null
+        const gamma = typeof event.gamma === 'number' ? event.gamma : 0;
+        const beta  = typeof event.beta === 'number' ? event.beta : 0;
+
+        const x = 50 + gamma * 0.2;
+        const y = 50 + beta * 0.1;
+
+        setBgPos(prev => {
+          const nx = Math.max(0, Math.min(100, x));
+          const ny = Math.max(0, Math.min(100, y));
+          if (prev.x === nx && prev.y === ny) return prev;
+          return { x: nx, y: ny };
+        });
+
+        rafId = null;
+      });
+    };
+
+    const start = async () => {
+      try {
+        // iOS (precisa de permissão explícita)
+        if (
+          typeof window.DeviceOrientationEvent?.requestPermission === 'function'
+        ) {
+          const permission = await window.DeviceOrientationEvent.requestPermission();
+          if (permission !== 'granted') return;
+        }
+
+        window.addEventListener('deviceorientation', handleOrientation, true);
+      } catch (err) {
+        console.warn('DeviceOrientation indisponível:', err);
+      }
+    };
+
+    start();
+
+    return () => {
+      enabled = false;
+      window.removeEventListener('deviceorientation', handleOrientation, true);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, []);
 
 
 
@@ -107,17 +106,6 @@ useEffect(() => {
       trailColor: 'white'
     };
   });
-
-  const backgroundMusic = useRef(new Audio('/assets/song/song-background.mp3'));
-
-  useEffect(() => {
-    backgroundMusic.current.loop = true;
-    backgroundMusic.current.volume = 0.07; // Volume 20
-
-    return () => {
-      backgroundMusic.current.pause();
-    };
-  }, []);
 
   useEffect(() => {
     localStorage.setItem('roomCurrent', JSON.stringify(roomCurrent));

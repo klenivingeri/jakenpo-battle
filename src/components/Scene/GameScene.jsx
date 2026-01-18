@@ -1,10 +1,23 @@
-
 import { Header } from '../HUD/ControlEnemy'
 import { Footer } from '../HUD/Control'
 import Jankenpo from '../Jankenpo';
 import './GameScene.css'
+import { useEffect, useRef } from 'react';
 
 export const GameScene = (props) => {
+  const backgroundMusic = useRef(null);
+
+  useEffect(() => {
+    backgroundMusic.current = new Audio('/assets/song/song-background.mp3');
+    backgroundMusic.current.loop = true;
+    backgroundMusic.current.volume = 0.07;
+    backgroundMusic.current.play();
+    return () => {
+      backgroundMusic.current.pause();
+      backgroundMusic.current = null;
+    };
+  }, []);
+
   return (
    <>
     <div className='container_game_scene' >
