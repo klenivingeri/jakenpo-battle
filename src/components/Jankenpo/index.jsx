@@ -112,10 +112,10 @@ const Jankenpo = ({
         if (player.hp <= 0 || timeLeft <= 0) {
             setIsGameOver(true);
             const finalResult = player.hp > 0 ? 'win' : 'loss';
-            handleGameEnd({ ...stats, result: finalResult });
+            handleGameEnd({ ...stats, result: finalResult, gold });
         } else if (enemy.hp <= 0) {
             setIsGameOver(true);
-            handleGameEnd({ ...stats, result: 'win' });
+            handleGameEnd({ ...stats, result: 'win', gold });
         }
     }, [player.hp, enemy.hp, timeLeft, isGameOver, handleGameEnd, stats]);
 
@@ -248,16 +248,6 @@ const Jankenpo = ({
                             setStats(s => ({...s, draws: s.draws + 1}));
                         }
 
-                        // Adicionar gold ao destruir inimigo
-                        if (result === 'win') {
-                            setGold(prevGold => prevGold + eBullet.gold); // Incrementar o gold acumulado
-                            // Mostrar o ganho de gold na tela
-                            setExplosions(prev => [...prev, {
-                                ...createExplosion(pBullet.x, pBullet.y - 25),
-                                goldText: `+${eBullet.gold}`
-                            }]);
-                        }
-
                         // Aplicar dano
                         pBullet.hp -= pDamage;
                         eBullet.hp -= eDamage;
@@ -268,6 +258,16 @@ const Jankenpo = ({
                         }
                         if (eBullet.hp <= 0) {
                             eBullet.active = false;
+                            
+                            // Adicionar gold apenas quando o inimigo é destruído
+                            if (result === 'win') {
+                                setGold(prevGold => prevGold + eBullet.gold);
+                                // Mostrar o ganho de gold na tela
+                                setExplosions(prev => [...prev, {
+                                    ...createExplosion(pBullet.x, pBullet.y - 25),
+                                    goldText: `+${eBullet.gold}`
+                                }]);
+                            }
                         }
                         
                         // Se a bala do jogador foi destruída, não é necessário verificar contra outras balas inimigas
@@ -436,6 +436,7 @@ const Jankenpo = ({
                 wins={stats.wins}
                 losses={stats.losses}
                 draws={stats.draws}
+                gold={gold}
             />
             <canvas ref={canvasRef} />
             

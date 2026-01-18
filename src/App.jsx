@@ -92,6 +92,22 @@ useEffect(() => {
   });
   const [activeRoomIndex, setActiveRoomIndex] = useState(0);
 
+  // Registry/Inventário do Player
+  const [playerRegistry, setPlayerRegistry] = useState(() => {
+    const saved = localStorage.getItem('playerRegistry');
+    return saved !== null ? JSON.parse(saved) : {
+      gold: 0,
+      xp: 0,
+      level: 1,
+      currentSkins: {
+        pedra: '/assets/1_pedra.png',
+        papel: '/assets/2_papel.png',
+        tesoura: '/assets/3_tesoura.png'
+      },
+      trailColor: 'white'
+    };
+  });
+
   const backgroundMusic = useRef(new Audio('/assets/song/song-background.mp3'));
 
   useEffect(() => {
@@ -107,7 +123,8 @@ useEffect(() => {
     localStorage.setItem('roomCurrent', JSON.stringify(roomCurrent));
     localStorage.setItem('gameStats', JSON.stringify(gameStats));
     localStorage.setItem('roomStars', JSON.stringify(roomStars));
-  }, [roomCurrent, gameStats, roomStars]);
+    localStorage.setItem('playerRegistry', JSON.stringify(playerRegistry));
+  }, [roomCurrent, gameStats, roomStars, playerRegistry]);
 
   const handleInit = () => {
     setScene('Init');
@@ -181,6 +198,23 @@ useEffect(() => {
           setRoomCurrent(roomCurrent + 1);
         }
       }
+    
+    // Atualizar registry do player com gold e xp ganhos
+    if (stats.gold > 0) {
+      setPlayerRegistry(prev => {
+        const newGold = prev.gold + stats.gold;
+        const newXp = prev.xp + stats.gold * 10; // 10 XP por gold
+        const newLevel = Math.floor(newXp / 100) + 1; // Nível a cada 100 XP
+        
+        return {
+          ...prev,
+          gold: newGold,
+          xp: newXp,
+          level: newLevel
+        };
+      });
+    }
+    
     }
     setGameStats({ ...stats, stars });
     setScene('EndResult');
@@ -219,7 +253,14 @@ useEffect(() => {
         </div>
       </div>),
     Init: (
-      <InitScene setScene={setScene} rooms={rooms} setRoomCurrent={handleStartGame} roomStars={roomStars} />
+      <InitScene 
+        setScene={setScene} 
+        rooms={rooms} 
+        setRoomCurrent={handleStartGame} 
+        roomStars={roomStars}
+        playerRegistry={playerRegistry}
+        setPlayerRegistry={setPlayerRegistry}
+      />
     ),
     Game: (
       <GameScene

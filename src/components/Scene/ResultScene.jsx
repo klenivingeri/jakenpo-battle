@@ -32,6 +32,7 @@
         <p>Vitórias: {gameStats.wins}</p>
         <p>Derrotas: {gameStats.losses}</p>
         <p>Empates: {gameStats.draws}</p>
+        <p style={{ color: 'orange', fontWeight: 'bold' }}>Gold Coletado: {gameStats.gold || 0}</p>
         <button className='button_footer' style={{ padding: '10px', marginTop: '20px', fontSize: '1.8rem' }} onClick={() => setScene('Init')}>
           Ir para o menu
         </button>
