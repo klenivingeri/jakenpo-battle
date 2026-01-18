@@ -5,6 +5,7 @@ import { GameScene } from './components/Scene/GameScene';
 import { InitScene } from './components/Scene/InitScene';
 import { ResultScene } from './components/Scene/ResultScene';
 import { toggleFullScreen } from './help/fullScreen';
+import { calculateUnlockCost } from './utils/economyUtils';
 
 function App() {
   const [bgPos, setBgPos] = useState({ x: 50, y: 50 });
@@ -142,7 +143,7 @@ function App() {
     const level = i + 1;
 
     // Reseta a curva de velocidade/spawn a cada 30 níveis
-    const resetIndex = i % 5;
+    const resetIndex = i % 30;
 
     // Velocidade: sobe de 2.0 a 7.6 dentro de cada bloco de 30 níveis
     const baseSpeed = 2 + (Math.floor(resetIndex / 2) * 0.40);
@@ -165,6 +166,9 @@ function App() {
     // Normalizar para somar 100
     const total = commonDrop + uncommonDrop + rareDrop + heroicDrop + legendaryDrop + mythicDrop + immortalDrop;
     
+    // Calcula o custo para desbloquear esta fase
+    const unlockCost = calculateUnlockCost(level);
+    
     return {
       id: level,
       gameDuration: 30 + resetIndex,
@@ -172,6 +176,7 @@ function App() {
       spawnInterval: baseSpawnInterval,
       bulletsPerAction: 1,
       disableButton: i > roomCurrent,
+      unlockCost, // Custo para desbloquear a próxima fase
       enemy: {
         common: { drop: (commonDrop / total) * 100 },
         uncommon: { drop: (uncommonDrop / total) * 100 },
@@ -193,17 +198,14 @@ function App() {
   const handleGameEnd = (stats) => {
     let stars = 0;
     if (stats.result === 'win') {
-      stars = player.hp >= 100 ? 3 : player.hp >= 50 ? 2 : 1;
+      stars = player.hp >= 10 ? 3 : player.hp >= 5 ? 2 : 1;
       const newStars = [...roomStars];
       if (stars > newStars[activeRoomIndex]) {
         newStars[activeRoomIndex] = stars;
         setRoomStars(newStars);
       }
-      if (activeRoomIndex === roomCurrent) {
-        if (roomCurrent < rooms.length - 1) {
-          setRoomCurrent(roomCurrent + 1);
-        }
-      }
+      // Removido o auto-desbloqueio - agora só desbloqueia comprando com gold
+    }
     
     // Atualizar registry do player com gold e xp ganhos
     if (stats.gold > 0) {
@@ -221,7 +223,6 @@ function App() {
       });
     }
     
-    }
     setGameStats({ ...stats, stars });
     backgroundMusic.current.pause();
     setScene('EndResult');
@@ -267,7 +268,9 @@ function App() {
       <InitScene 
         setScene={setScene} 
         rooms={rooms} 
-        setRoomCurrent={handleStartGame} 
+        setRoomCurrent={setRoomCurrent}
+        setActiveRoomIndex={setActiveRoomIndex}
+        roomCurrent={roomCurrent}
         roomStars={roomStars}
         playerRegistry={playerRegistry}
         setPlayerRegistry={setPlayerRegistry}

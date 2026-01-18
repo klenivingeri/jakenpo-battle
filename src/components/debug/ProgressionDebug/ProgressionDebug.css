@@ -1,0 +1,191 @@
+.progression-debug {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  max-width: 600px;
+  max-height: 80vh;
+  background: rgba(0, 0, 0, 0.95);
+  border: 2px solid #3498db;
+  border-radius: 12px;
+  padding: 16px;
+  color: white;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  overflow: auto;
+  z-index: 9999;
+  box-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
+}
+
+.debug-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #3498db;
+}
+
+.debug-header h3 {
+  margin: 0;
+  color: #3498db;
+  font-size: 16px;
+}
+
+.debug-summary {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+}
+
+.debug-summary span {
+  background: rgba(52, 152, 219, 0.2);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.debug-summary-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.summary-card {
+  background: rgba(52, 152, 219, 0.1);
+  border: 1px solid rgba(52, 152, 219, 0.3);
+  border-radius: 8px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.summary-label {
+  font-size: 10px;
+  color: #95a5a6;
+  text-align: center;
+}
+
+.summary-value {
+  font-size: 16px;
+  font-weight: bold;
+  color: #3498db;
+}
+
+.debug-table {
+  overflow-x: auto;
+  margin-bottom: 12px;
+}
+
+.debug-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.debug-table th {
+  background: rgba(52, 152, 219, 0.2);
+  padding: 8px;
+  text-align: left;
+  font-weight: bold;
+  color: #3498db;
+  border-bottom: 2px solid #3498db;
+}
+
+.debug-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.debug-table tr.unlocked {
+  background: rgba(46, 204, 113, 0.05);
+}
+
+.debug-table tr.locked {
+  background: rgba(231, 76, 60, 0.05);
+}
+
+.debug-table tr.affordable {
+  background: rgba(241, 196, 15, 0.1);
+}
+
+.debug-table tr.current {
+  background: rgba(52, 152, 219, 0.2);
+  font-weight: bold;
+}
+
+.debug-table tr:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.cost-cell {
+  color: #f1c40f;
+  font-weight: bold;
+}
+
+.debug-table td.good {
+  color: #2ecc71;
+  font-weight: bold;
+}
+
+.debug-table td.ok {
+  color: #f39c12;
+  font-weight: bold;
+}
+
+.debug-table td.hard {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+.debug-legend {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.legend-color.good {
+  background: #2ecc71;
+}
+
+.legend-color.ok {
+  background: #f39c12;
+}
+
+.legend-color.hard {
+  background: #e74c3c;
+}
+
+/* Scrollbar personalizada */
+.progression-debug::-webkit-scrollbar {
+  width: 8px;
+}
+
+.progression-debug::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+}
+
+.progression-debug::-webkit-scrollbar-thumb {
+  background: #3498db;
+  border-radius: 4px;
+}
+
+.progression-debug::-webkit-scrollbar-thumb:hover {
+  background: #5dade2;
+}
