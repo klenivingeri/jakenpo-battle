@@ -1,0 +1,94 @@
+{
+  "pedra": [
+    {
+      "name": "Pedra 1",
+      "price": 200,
+      "path": "/assets/1_pedra_0.png",
+      "default": true
+    }
+  ],
+  "papel": [
+    {
+      "name": "Papel 1",
+      "price": 50,
+      "path": "/assets/2_papel_0.png"
+    },
+    {
+      "name": "Papel 2",
+      "price": 50,
+      "path": "/assets/2_papel_1.png"
+    },
+    {
+      "name": "Papel 3",
+      "price": 50,
+      "path": "/assets/2_papel_2.png"
+    },
+    {
+      "name": "Papel 4",
+      "price": 150,
+      "path": "/assets/2_papel_3.png"
+    },
+    {
+      "name": "Papel 5",
+      "price": 150,
+      "path": "/assets/2_papel_4.png"
+    },
+    {
+      "name": "Papel 6",
+      "price": 150,
+      "path": "/assets/2_papel_5.png"
+    },
+    {
+      "name": "Papel 7",
+      "price": 150,
+      "path": "/assets/2_papel_6.png"
+    },
+    {
+      "name": "Papel 8",
+      "price": 150,
+      "path": "/assets/2_papel_7.png"
+    }
+  ],
+  "tesoura": [
+    {
+      "name": "Tesoura 1",
+      "price": 100,
+      "path": "/assets/3_tesoura_1.png"
+    },
+    {
+      "name": "Tesoura 2",
+      "price": 100,
+      "path": "/assets/3_tesoura_2.png"
+    },
+    {
+      "name": "Tesoura 3",
+      "price": 100,
+      "path": "/assets/3_tesoura_3.png"
+    },
+    {
+      "name": "Tesoura 4",
+      "price": 150,
+      "path": "/assets/3_tesoura_4.png"
+    },
+    {
+      "name": "Tesoura 5",
+      "price": 100,
+      "path": "/assets/3_tesoura_5.png"
+    },
+    {
+      "name": "Tesoura 6",
+      "price": 150,
+      "path": "/assets/3_tesoura_6.png"
+    },
+    {
+      "name": "Tesoura 7",
+      "price": 150,
+      "path": "/assets/3_tesoura_7.png"
+    },
+    {
+      "name": "Tesoura 8",
+      "price": 150,
+      "path": "/assets/3_tesoura_8.png"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+[
+  {
+    "name": "Vila",
+    "price": 100,
+    "path": "/assets/background/vila.gif",
+    "default": true
+  },
+  {
+    "name": "Trem",
+    "price": 100,
+    "path": "/assets/background/trem.gif"
+  },
+  {
+    "name": "Natal",
+    "price": 100,
+    "path": "/assets/background/7943794.gif"
+  },
+  {
+    "name": "escola",
+    "price": 150,
+    "path": "/assets/background/8351161.webp"
+  },
+  {
+    "name": "Rua",
+    "price": 150,
+    "path": "/assets/background/dark.gif"
+  },
+  {
+    "name": "Fazenda 1",
+    "price": 150,
+    "path": "/assets/background/fazenda.gif",
+    "pan": {
+      "baseX": 10
+    }
+  },
+  {
+    "name": "Fazenda 2",
+    "price": 150,
+    "path": "/assets/background/fazenda.gif",
+    "pan": {
+      "baseX": 90
+    }
+  },
+  {
+    "name": "Cidade a noite",
+    "price": 150,
+    "path": "/assets/background/giphy.gif"
+  }
+]
