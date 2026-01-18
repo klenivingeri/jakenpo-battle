@@ -1,4 +1,11 @@
 import { BULLET_TYPES } from '../constants/gameConfig'
+import bulletAttributesData from '../data/bullet_attributes.json'
+
+// Converte array em objeto para acesso mais rápido
+const bulletAttributes = bulletAttributesData.reduce((acc, attr) => {
+  acc[attr.id] = attr
+  return acc
+}, {})
 
 // Verifica colisão entre dois objetos
 export const checkCollision = (a, b) => 
@@ -32,18 +39,45 @@ export const selectRandomBulletType = (previousBullets = [], allTypes) => {
   return newType
 }
 
+// Sorteia uma raridade baseado nas chances de drop
+export const selectBulletRarity = (dropConfig) => {
+  const rand = Math.random() * 100
+  let cumulative = 0
+  
+  const rarities = ['common', 'uncommon', 'rare', 'heroic', 'legendary', 'mythic', 'immortal']
+  
+  for (const rarity of rarities) {
+    cumulative += dropConfig[rarity].drop
+    if (rand <= cumulative) {
+      return rarity
+    }
+  }
+  
+  return 'common' // fallback
+}
+
 // Cria uma nova entidade de bala
-export const createBullet = (type, x, y, width, height) => ({
-  type,
-  x,
-  y,
-  width,
-  height,
-  active: true,
-  id: Date.now() + Math.random(),
-  createdAt: performance.now(),
-  lastParticleY: y
-})
+export const createBullet = (type, x, y, width, height, rarity = 'common') => {
+  const attributes = bulletAttributes[rarity]
+  
+  return {
+    type,
+    x,
+    y,
+    width,
+    height,
+    active: true,
+    id: Date.now() + Math.random(),
+    createdAt: performance.now(),
+    lastParticleY: y,
+    rarity,
+    hp: attributes.enemyHp,
+    maxHp: attributes.enemyHp,
+    atk: attributes.enemyAtk,
+    color: attributes.color,
+    gold: attributes.gold
+  }
+}
 
 // Atualiza a posição e escala de uma bala baseado no tempo
 export const updateBulletTransform = (bullet, deltaY, now, canvasWidth, animationDuration) => {
@@ -75,3 +109,42 @@ export const createExplosion = (x, y) => ({
   animCounter: 0,
   animDelay: 2
 })
+
+// Desenha a barra de HP segmentada
+export const drawHPBar = (context, bullet, offsetY = 0) => {
+  const barMaxWidth = 32
+  const barHeight = 8
+  const blockGap = 2
+  const totalBlocks = Math.ceil(bullet.maxHp)
+  const blockWidth = (barMaxWidth - (totalBlocks - 1) * blockGap) / totalBlocks
+  
+  const barX = bullet.x + bullet.width / 2 - barMaxWidth / 2
+  const barY = bullet.y + bullet.height + offsetY
+  
+  // Número de blocos cheios
+  const filledBlocks = Math.ceil(bullet.hp)
+  
+  for (let i = 0; i < totalBlocks; i++) {
+    const x = barX + i * (blockWidth + blockGap)
+    
+    if (i < filledBlocks) {
+      // Bloco cheio
+      context.fillStyle = bullet.color || '#95a5a6'
+      context.fillRect(x, barY, blockWidth, barHeight)
+      
+      // Borda
+      context.strokeStyle = '#000'
+      context.lineWidth = 1
+      context.strokeRect(x, barY, blockWidth, barHeight)
+    } else {
+      // Bloco vazio
+      context.fillStyle = '#333'
+      context.fillRect(x, barY, blockWidth, barHeight)
+      
+      // Borda
+      context.strokeStyle = '#000'
+      context.lineWidth = 1
+      context.strokeRect(x, barY, blockWidth, barHeight)
+    }
+  }
+}

@@ -7,10 +7,12 @@ import {
   checkCollision,
   getGameResult,
   selectRandomBulletType,
+  selectBulletRarity,
   createBullet,
   updateBulletTransform,
   createParticle,
-  createExplosion
+  createExplosion,
+  drawHPBar
 } from '../../utils/gameUtils';
 
 // Importação das imagens
@@ -31,7 +33,16 @@ const Jankenpo = ({
     handleGameEnd, 
     gameDuration = DEFAULT_GAME_CONFIG.GAME_DURATION, 
     speed = DEFAULT_GAME_CONFIG.BULLET_SPEED, 
-    spawnInterval = DEFAULT_GAME_CONFIG.SPAWN_INTERVAL 
+    spawnInterval = DEFAULT_GAME_CONFIG.SPAWN_INTERVAL,
+    enemyDropConfig = {
+        common: { drop: 100 },
+        uncommon: { drop: 0 },
+        rare: { drop: 0 },
+        heroic: { drop: 0 },
+        legendary: { drop: 0 },
+        mythic: { drop: 0 },
+        immortal: { drop: 0 }
+    }
 }) => {
     const canvasRef = useRef(null);
     const containerRef = useRef(null);
@@ -43,6 +54,7 @@ const Jankenpo = ({
     const [timeLeft, setTimeLeft] = useState(gameDuration);
     const [loadedImages, setLoadedImages] = useState(null);
     const [isGameOver, setIsGameOver] = useState(false);
+    const [gold, setGold] = useState(0); // Estado para armazenar o gold acumulado
     const explosionAudioRef = useRef(new Audio(explosionSoundSrc));
     const { vibrateHit, vibrateDamage } = useVibration();
 
@@ -128,19 +140,21 @@ const Jankenpo = ({
             setEnemyBullets(prevBullets => {
                 const bulletTypes = Object.keys(BULLET_CONFIG);
                 const newType = selectRandomBulletType(prevBullets, bulletTypes);
+                const rarity = selectBulletRarity(enemyDropConfig);
                 const newBullet = createBullet(
                     newType,
                     canvasRef.current.width / 2 - DEFAULT_GAME_CONFIG.BULLET_SIZE / 2,
                     0,
                     DEFAULT_GAME_CONFIG.BULLET_SIZE,
-                    DEFAULT_GAME_CONFIG.BULLET_SIZE
+                    DEFAULT_GAME_CONFIG.BULLET_SIZE,
+                    rarity
                 );
                 return [...prevBullets, newBullet];
             });
         }, spawnInterval);
 
         return () => clearInterval(enemyShootInterval);
-    }, [isGameOver, loadedImages, spawnInterval]);
+    }, [isGameOver, loadedImages, spawnInterval, enemyDropConfig]);
 
     // Lógica de disparo do jogador
     useEffect(() => {
@@ -152,7 +166,8 @@ const Jankenpo = ({
                 canvasRef.current.width / 2 - DEFAULT_GAME_CONFIG.BULLET_SIZE / 2,
                 canvasRef.current.height - 30,
                 DEFAULT_GAME_CONFIG.BULLET_SIZE,
-                DEFAULT_GAME_CONFIG.BULLET_SIZE
+                DEFAULT_GAME_CONFIG.BULLET_SIZE,
+                'common' // Player sempre usa bullets comuns
             );
             newBullet.lastParticleY = canvasRef.current.height - 50;
             setPlayerBullets(prev => [...prev, newBullet]);
@@ -213,17 +228,46 @@ const Jankenpo = ({
                             explosionAudioRef.current.play().catch(e => console.error("Error playing sound:", e));
                         }
 
+                        // Sistema de dano baseado em HP
+                        let pDamage = 0;
+                        let eDamage = 0;
+
                         if (result === 'win') {
-                            eBullet.active = false;
+                            // Jogador ganha: inimigo recebe dano total
+                            eDamage = pBullet.atk;
                             setStats(s => ({...s, wins: s.wins + 1}));
                             vibrateHit();
                         } else if (result === 'loss') {
-                            pBullet.active = false;
+                            // Jogador perde: jogador recebe dano total
+                            pDamage = eBullet.atk;
                             setStats(s => ({...s, losses: s.losses + 1}));
                         } else {
-                            pBullet.active = false;
-                            eBullet.active = false;
+                            // Empate: ambos recebem o dano total
+                            pDamage = eBullet.atk;
+                            eDamage = pBullet.atk;
                             setStats(s => ({...s, draws: s.draws + 1}));
+                        }
+
+                        // Adicionar gold ao destruir inimigo
+                        if (result === 'win') {
+                            setGold(prevGold => prevGold + eBullet.gold); // Incrementar o gold acumulado
+                            // Mostrar o ganho de gold na tela
+                            setExplosions(prev => [...prev, {
+                                ...createExplosion(pBullet.x, pBullet.y - 25),
+                                goldText: `+${eBullet.gold}`
+                            }]);
+                        }
+
+                        // Aplicar dano
+                        pBullet.hp -= pDamage;
+                        eBullet.hp -= eDamage;
+
+                        // Verificar se bullets foram destruídos
+                        if (pBullet.hp <= 0) {
+                            pBullet.active = false;
+                        }
+                        if (eBullet.hp <= 0) {
+                            eBullet.active = false;
                         }
                         
                         // Se a bala do jogador foi destruída, não é necessário verificar contra outras balas inimigas
@@ -241,7 +285,7 @@ const Jankenpo = ({
                     if (pBullet.y < +10) { // A bala saiu 100px do topo da tela
                         pBullet.active = false; // Desativar a bala
                         setExplosions(prev => [...prev, createExplosion(pBullet.x, pBullet.y - 10)]); // Criar explosão um pouco mais abaixo
-                        setEnemy(e => ({ ...e, hp: e.hp - player.atk })); // O inimigo perde HP
+                        setEnemy(e => ({ ...e, hp: e.hp - pBullet.atk })); // O inimigo perde HP baseado no atk do bullet
                     } else {
                         activePlayerBullets.push(pBullet);
                     }
@@ -253,7 +297,7 @@ const Jankenpo = ({
                 if (eBullet.active) {
                     if (eBullet.y > canvas.height - 10) {
                         eBullet.active = false;
-                        setPlayer(p => ({ ...p, hp: p.hp - enemy.atk }));
+                        setPlayer(p => ({ ...p, hp: p.hp - eBullet.atk })); // Player perde HP baseado no atk do bullet
                         vibrateDamage();
                         setExplosions(prev => [...prev, createExplosion(eBullet.x, eBullet.y - 40)]);
                     } else {
@@ -278,12 +322,12 @@ const Jankenpo = ({
             const spawnParticlesForBullet = (bullet) => {
                 const dist = Math.abs(bullet.y - bullet.lastParticleY);
                 if (dist > DEFAULT_GAME_CONFIG.PARTICLE_SPAWN_DISTANCE) {
-                    particlesRef.current.push(
-                        createParticle(
-                            bullet.x + bullet.width / 2,
-                            bullet.y + bullet.height / 2
-                        )
+                    const particle = createParticle(
+                        bullet.x + bullet.width / 2,
+                        bullet.y + bullet.height / 2
                     );
+                    particle.color = bullet.color || 'white'; // Usar a cor do bullet
+                    particlesRef.current.push(particle);
                     bullet.lastParticleY = bullet.y;
                 }
             };
@@ -301,7 +345,7 @@ const Jankenpo = ({
                     const size = (50 / 2) * scale; // 50 é o tamanho da bala
 
                     context.globalAlpha = 1 - life;
-                    context.fillStyle = 'white';
+                    context.fillStyle = p.color || 'white';
 
                     context.fillRect(
                         p.x - size / 2,
@@ -319,7 +363,12 @@ const Jankenpo = ({
 
 
             // --- Desenho ---
-            playerBulletsRef.current.forEach(b => context.drawImage(loadedImages[b.type], b.x, b.y, b.width, b.height));
+            // Desenhar balas do jogador
+            playerBulletsRef.current.forEach(b => {
+                context.drawImage(loadedImages[b.type], b.x, b.y, b.width, b.height);
+                // Desenhar barra de HP abaixo do bullet
+                drawHPBar(context, b, 5);
+            });
             
             // Desenhar balas inimigas rotacionadas
             enemyBulletsRef.current.forEach(b => {
@@ -330,6 +379,9 @@ const Jankenpo = ({
                 // Desenhar a imagem, ajustando as coordenadas devido à translação
                 context.drawImage(loadedImages[b.type], -b.width / 2, -b.height / 2, b.width, b.height);
                 context.restore(); // Restaurar o estado
+                
+                // Desenhar barra de HP antes do bullet, ajustada para ficar 40px mais acima
+                drawHPBar(context, b, -60);
             });
             
             // Explosões
@@ -338,7 +390,7 @@ const Jankenpo = ({
                 if (exp.anim < 9) { // 9 quadros para uma grade 3x3
                     const frameWidth = loadedImages['explosao'].width / 3;
                     const frameHeight = loadedImages['explosao'].height / 3;
-                    
+
                     const frame = exp.anim;
                     const sx = (frame % 3) * frameWidth;
                     const sy = Math.floor(frame / 3) * frameHeight;
@@ -348,6 +400,14 @@ const Jankenpo = ({
                         sx, sy, frameWidth, frameHeight, // Retângulo de origem
                         exp.x, exp.y, 50, 50              // Retângulo de destino
                     );
+
+                    // Exibir texto de gold, se existir
+                    if (exp.goldText) {
+                        context.fillStyle = 'orange';
+                        context.font = 'bold 16px Arial';
+                        context.textAlign = 'center';
+                        context.fillText(exp.goldText, exp.x + 25, exp.y - 10); // Texto acima da explosão
+                    }
 
                     exp.animCounter++;
                     if (exp.animCounter >= exp.animDelay) {
@@ -367,7 +427,7 @@ const Jankenpo = ({
         animationFrameId = requestAnimationFrame(update);
 
         return () => cancelAnimationFrame(animationFrameId);
-    }, [loadedImages, isGameOver, enemy.atk, setPlayer, setEnemy, player.atk, speed]);
+    }, [loadedImages, isGameOver, setPlayer, setEnemy, speed, vibrateHit, vibrateDamage]);
 
     return (
         <div ref={containerRef} className="canvas-container">

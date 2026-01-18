@@ -1,0 +1,58 @@
+[
+  {
+    "id": "common",
+    "name": "Comum",
+    "color": "#95a5a6",
+    "enemyHp": 1,
+    "enemyAtk": 1,
+       "gold": 1
+  },
+  {
+    "id": "uncommon",
+    "name": "Incomum",
+    "color": "#2ecc71",
+    "enemyHp": 2,
+    "enemyAtk": 1,
+       "gold": 2
+  },
+  {
+    "id": "rare",
+    "name": "Raro",
+    "color": "#3498db",
+    "enemyHp": 2,
+    "enemyAtk": 2,
+    "gold": 3
+  },
+  {
+    "id": "heroic",
+    "name": "Heroico",
+    "color": "#9b59b6",
+    "enemyHp": 3,
+    "enemyAtk": 2,
+    "gold": 4
+  },
+  {
+    "id": "legendary",
+    "name": "Lendário",
+    "color": "#f1c40f",
+    "enemyHp": 3,
+    "enemyAtk": 3,
+    "gold": 5
+  },
+  {
+    "id": "mythic",
+    "name": "Mítico",
+    "color": "#e67e22",
+    "enemyHp": 4,
+    "enemyAtk": 3,
+    "gold": 6
+  },
+  {
+    "id": "immortal",
+    "name": "Imortal",
+    "color": "#e74c3c",
+    "enemyHp": 4,
+    "enemyAtk": 4,
+    "gold": 7
+  }
+]

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import './App.css';
 import './Animate.css';
 import { GameScene } from './components/Scene/GameScene';
@@ -115,37 +115,51 @@ useEffect(() => {
     backgroundMusic.current.play()
   }
 
-  const rooms = Array.from({ length: 100 }, (_, i) => {
+  const rooms = useMemo(() => Array.from({ length: 100 }, (_, i) => {
     const level = i + 1;
 
     // Reseta a curva de velocidade/spawn a cada 30 níveis
-    const resetIndex = i % 35;
+    const resetIndex = i % 5;
 
     // Velocidade: sobe de 2.0 a 7.6 dentro de cada bloco de 30 níveis
     const baseSpeed = 2 + (Math.floor(resetIndex / 2) * 0.40);
 
     // Spawn: fica mais rápido até o meio de cada bloco
-    const baseSpawnInterval = Math.max(600, 3000 - (Math.min(resetIndex, 15) * 100));
+    const baseSpawnInterval = Math.max(600, 3000 - (Math.min(resetIndex, 20) * 100));
 
-    // Lógica de MULTIPLICADOR (Quantidade de balas)
-    // i < 29: Níveis 1-29 -> 1 bala
-    // i < 59: Níveis 30-59 -> 2 balas uma atrás da outra
-    // i >= 59: Níveis 60+ -> 3 balas uma atrás da outra
-    let bulletsPerSpawn = 1;
-    if (i >= 29 && i < 59) bulletsPerSpawn = 2;
-    else if (i >= 59) bulletsPerSpawn = 3;
-
+    // Sistema de drops de raridade baseado no nível
+    // Conforme sobe o nível, aumenta a chance de bullets raros
+    const progressFactor = Math.min(i / 99, 1); // 0 a 1
+    
+    const commonDrop = Math.max(10, 100 - (progressFactor * 60)); // 100 -> 40
+    const uncommonDrop = Math.min(30, progressFactor * 30); // 0 -> 30
+    const rareDrop = Math.min(20, progressFactor * 20); // 0 -> 20
+    const heroicDrop = Math.min(15, progressFactor * 15); // 0 -> 15
+    const legendaryDrop = Math.min(10, progressFactor * 10); // 0 -> 10
+    const mythicDrop = Math.min(8, progressFactor * 8); // 0 -> 8
+    const immortalDrop = Math.min(7, progressFactor * 7); // 0 -> 7
+    
+    // Normalizar para somar 100
+    const total = commonDrop + uncommonDrop + rareDrop + heroicDrop + legendaryDrop + mythicDrop + immortalDrop;
+    
     return {
       id: level,
       gameDuration: 30 + resetIndex,
       speed: baseSpeed,
       spawnInterval: baseSpawnInterval,
-      bulletsPerAction: bulletsPerSpawn, // Nova propriedade!
-      enemyAtk: 1,
-      enemyHp: 10,
+      bulletsPerAction: 1,
       disableButton: i > roomCurrent,
+      enemy: {
+        common: { drop: (commonDrop / total) * 100 },
+        uncommon: { drop: (uncommonDrop / total) * 100 },
+        rare: { drop: (rareDrop / total) * 100 },
+        heroic: { drop: (heroicDrop / total) * 100 },
+        legendary: { drop: (legendaryDrop / total) * 100 },
+        mythic: { drop: (mythicDrop / total) * 100 },
+        immortal: { drop: (immortalDrop / total) * 100 }
+      }
     };
-  });
+  }), [roomCurrent]);
 
   const handleBullet = (type, shooter) => {
     if (shooter === 'player') {
@@ -174,7 +188,7 @@ useEffect(() => {
 
   const handleStartGame = (index) => {
     setPlayer(p => ({ ...p, hp: 10 })); // Reset player HP
-    setEnemy(e => ({ ...e, hp: rooms[index].enemyHp })); // Reset enemy HP
+    setEnemy(e => ({ ...e, hp: 10 })); // Reset enemy HP
     setActiveRoomIndex(index);
     setScene('Game');
   };
@@ -212,7 +226,7 @@ useEffect(() => {
         handleBullet={handleBullet}
         player={player}
         setPlayer={setPlayer}
-        enemy={{ ...enemy, atk: currentRoom.enemyAtk }}
+        enemy={{ ...enemy, atk: 1 }}
         setEnemy={setEnemy}
         disableButtonPlayer={disableButtonPlayer}
         setdisableButtonPlayer={setdisableButtonPlayer}
@@ -222,6 +236,7 @@ useEffect(() => {
         speed={currentRoom.speed}
         spawnInterval={currentRoom.spawnInterval}
         bulletsPerSpawn={currentRoom.bulletsPerAction}
+        enemyDropConfig={currentRoom.enemy}
       />
     ),
     EndResult: (

@@ -6,7 +6,7 @@ export const Footer = ({ setScene }) => {
       <div className=''>
         <button className='button_footer botao-pulsar'>
           <span className='emoji_footer'>⚔️</span>
-          <span>Multiplayer</span>
+          <span>Infinito</span>
         </button>
       </div>
     </div>
