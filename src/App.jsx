@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Game from './Game';
 import Galery from './components/galery';
+import Shop from './components/shop';
 import './App.css';
 
 function App() {
@@ -112,6 +113,7 @@ function App() {
             <Route path="/" element={<Game initialScene="Start" />} />
             <Route path="/init" element={<Game initialScene="Init" />} />
             <Route path="/galeria" element={<Galery />} />
+            <Route path="/loja" element={<Shop />} />
           </Routes>
         </div>
       </div>

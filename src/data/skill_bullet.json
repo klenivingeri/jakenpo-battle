@@ -1,13 +1,24 @@
 {
   "pedra": [
+        {
+      "name": "Pedra 1",
+      "price": 200,
+      "path": "/assets/1_pedra.png",
+      "default": true
+    },
     {
       "name": "Pedra 1",
       "price": 200,
-      "path": "/assets/1_pedra_0.png",
-      "default": true
+      "path": "/assets/1_pedra_0.png"
     }
   ],
   "papel": [
+        {
+      "name": "Papel 1",
+      "price": 50,
+      "path": "/assets/2_papel.png",
+      "default": true
+    },
     {
       "name": "Papel 1",
       "price": 50,
@@ -50,6 +61,12 @@
     }
   ],
   "tesoura": [
+        {
+      "name": "Tesoura 1",
+      "price": 100,
+      "path": "/assets/3_tesoura.png",
+      "default": true
+    },
     {
       "name": "Tesoura 1",
       "price": 100,
@@ -89,6 +106,64 @@
       "name": "Tesoura 8",
       "price": 150,
       "path": "/assets/3_tesoura_8.png"
+    }
+  ],
+  "calda": [
+        {
+      "name": "Vermelho",
+      "price": 50,
+      "color": "#95a5a6",
+      "default": true
+    },
+    {
+      "name": "Vermelho",
+      "price": 50,
+      "color": "#FF0000"
+    },
+    {
+      "name": "Azul",
+      "price": 50,
+      "color": "#0066FF"
+    },
+    {
+      "name": "Verde",
+      "price": 50,
+      "color": "#00FF00"
+    },
+    {
+      "name": "Amarelo",
+      "price": 75,
+      "color": "#FFD700"
+    },
+    {
+      "name": "Rosa",
+      "price": 75,
+      "color": "#FF1493"
+    },
+    {
+      "name": "Roxo",
+      "price": 75,
+      "color": "#9400D3"
+    },
+    {
+      "name": "Laranja",
+      "price": 100,
+      "color": "#FF8C00"
+    },
+    {
+      "name": "Ciano",
+      "price": 100,
+      "color": "#00FFFF"
+    },
+    {
+      "name": "Arco-Íris",
+      "price": 150,
+      "color": "linear-gradient(90deg, #FF0000, #FF7F00, #FFFF00, #00FF00, #0000FF, #4B0082, #9400D3)"
+    },
+    {
+      "name": "Plasma",
+      "price": 200,
+      "color": "linear-gradient(90deg, #FF006E, #8338EC, #3A86FF)"
     }
   ]
 }

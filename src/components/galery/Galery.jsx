@@ -78,7 +78,7 @@ const Galery = () => {
         textTransform: 'uppercase',
         boxShadow: '4px 4px 0 0 #0008',
       }}>
-        🎨 Galeria de Fundos
+        🎨 Galeria
         <div style={{ fontSize: '1rem', marginTop: 8 }}>
           🪙 Gold: {playerRegistry.gold}
         </div>
@@ -91,7 +91,7 @@ const Galery = () => {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        paddingBottom: '20px'
+        paddingBottom: '150px'
       }}>
         <div style={{
           display: 'grid',
@@ -175,26 +175,15 @@ const Galery = () => {
             </div>
           ))}
         </div>
-        
-        <button
-          onClick={() => navigate('/init')}
-          style={{
-            marginTop: 24,
-            padding: '16px 32px',
-            background: '#00BFFF',
-            color: '#fff',
-            border: '5px solid #000',
-            fontWeight: 'bold',
-            fontSize: '1.2rem',
-            textTransform: 'uppercase',
-            letterSpacing: 2,
-            boxShadow: '4px 4px 0 0 #0008',
-            cursor: 'pointer',
-          }}
-        >
-          Voltar
-        </button>
       </div>
+
+    <div className='container_footer'>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <button className='button_footer botao-pulsar' style={{background: '#00BFFF',   borderBottom: '6px solid rgb(0, 115, 209)'}} onClick={() => navigate('/Init')}>
+            <span>Voltar</span>
+          </button>
+        </div>
+        </div>
     </div>
   );
 };

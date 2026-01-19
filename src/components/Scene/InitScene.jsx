@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Modal from '../shared/Modal';
 import { PurchaseModal } from '../shared/PurchaseModal';
 import { Footer } from '../Footer';
@@ -50,32 +51,80 @@ const LevelBox = ({ level, xp }) => (
 );
 
 export const InitScene = ({ rooms, setRoomCurrent, setActiveRoomIndex, setScene, roomStars, playerRegistry, setPlayerRegistry, setIsMusicOn, isMusicOn, roomCurrent }) => {
+  const navigate = useNavigate();
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState(null);
 
+  // Estado local para as skills equipadas
+  const [equippedSkills, setEquippedSkills] = useState(() => {
+    const saved = localStorage.getItem('playerRegistry');
+    if (saved) {
+      const registry = JSON.parse(saved);
+      return registry.equippedSkills || {
+        pedra: '/assets/1_pedra.png',
+        papel: '/assets/2_papel.png',
+        tesoura: '/assets/3_tesoura.png'
+      };
+    }
+    return {
+      pedra: '/assets/1_pedra.png',
+      papel: '/assets/2_papel.png',
+      tesoura: '/assets/3_tesoura.png'
+    };
+  });
+
+  // Atualiza as skills quando houver mudanças na loja
+  useEffect(() => {
+    const handleSkillsChanged = () => {
+      const saved = localStorage.getItem('playerRegistry');
+      if (saved) {
+        const registry = JSON.parse(saved);
+        setEquippedSkills(registry.equippedSkills || {
+          pedra: '/assets/1_pedra.png',
+          papel: '/assets/2_papel.png',
+          tesoura: '/assets/3_tesoura.png'
+        });
+        setPlayerRegistry(prev => ({
+          ...prev,
+          equippedSkills: registry.equippedSkills,
+          ownedSkills: registry.ownedSkills,
+          gold: registry.gold
+        }));
+      }
+    };
+
+    window.addEventListener('skillsChanged', handleSkillsChanged);
+    window.addEventListener('backgroundChanged', handleSkillsChanged);
+
+    return () => {
+      window.removeEventListener('skillsChanged', handleSkillsChanged);
+      window.removeEventListener('backgroundChanged', handleSkillsChanged);
+    };
+  }, [setPlayerRegistry]);
+
   // Função para lidar com a compra de uma fase
   const handlePurchase = (room) => {
     if (playerRegistry.gold >= room.unlockCost) {
       const roomIndex = room.id - 1; // room.id é 1-based, roomCurrent é 0-based
-      
+
       // Desconta o gold
       setPlayerRegistry(prev => ({
         ...prev,
         gold: prev.gold - room.unlockCost
       }));
-      
+
       // Desbloqueia a fase (atualiza roomCurrent)
       setRoomCurrent(roomIndex);
-      
+
       // Define a fase ativa
       setActiveRoomIndex(roomIndex);
-      
+
       // Fecha o modal
       setIsPurchaseModalOpen(false);
       setSelectedRoom(null);
-      
+
       // Inicia a fase automaticamente
       setScene('Game');
     }
@@ -85,7 +134,7 @@ export const InitScene = ({ rooms, setRoomCurrent, setActiveRoomIndex, setScene,
   const handleRoomClick = (room, index) => {
     const isUnlocked = index <= roomCurrent;
     const isNextRoom = index === roomCurrent + 1;
-    
+
     if (isUnlocked) {
       // Fase já desbloqueada - pode jogar
       setActiveRoomIndex(index);
@@ -99,54 +148,169 @@ export const InitScene = ({ rooms, setRoomCurrent, setActiveRoomIndex, setScene,
   };
 
   return (
-    <div className="container_game_scene">
-      {/* Barra de informações do jogador */}
-      <div
-        style={{
-          top: 0,
-          left: 0,
-          width: '100%',
-          color: 'white',
-          padding: '10px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          fontSize: '0.9rem',
-          zIndex: 10,
-          boxSizing: 'border-box',
-        }}
-      >
-        <InfoBox>
-          <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
-            <StyledImage src={playerRegistry.currentSkins.pedra} alt="pedra" />
-          <StyledImage src={playerRegistry.currentSkins.papel} alt="papel" />
-          <StyledImage src={playerRegistry.currentSkins.tesoura} alt="tesoura" />
-          </div>
-        </InfoBox>
+    <div className="container_game_scene" style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+      {/* Header Top Bar */}
+      <div style={{
+        padding: '12px 16px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: '10px',
+      }}>
+        {/* Level e XP */}
         <LevelBox level={playerRegistry.level} xp={playerRegistry.xp} />
-        <InfoBox>
-          <strong style={{ fontSize: '1.6rem' }}>🪙</strong> {playerRegistry.gold}
-        </InfoBox>
-        <InfoBox>
-          <strong style={{ fontSize: '1.6rem' }}>💎</strong> 0
-        </InfoBox>
-        {/* Menu para desligar música e ativar dark mode */}
-        <div style={{ position: 'relative' }}>
-          <button
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'white',
-              cursor: 'pointer',
-              fontSize: '1.2rem',
-            }}
-            onClick={() => setIsModalOpen(true)}
-          >
-            ⚙️
-          </button>
+        
+        {/* Moedas */}
+        <div style={{ display: 'flex', gap: '8px', flex: 1, justifyContent: 'center' }}>
+          <InfoBox>
+            <strong style={{ fontSize: '1.4rem' }}>🪙</strong> {playerRegistry.gold}
+          </InfoBox>
+          <InfoBox>
+            <strong style={{ fontSize: '1.4rem' }}>💎</strong> 0
+          </InfoBox>
         </div>
+
+        {/* Botão Config */}
+        <button
+          style={{
+            background: 'rgba(255, 255, 255, 0.2)',
+            border: '2px solid rgba(255,255,255,0.3)',
+            borderRadius: '8px',
+            color: 'white',
+            cursor: 'pointer',
+            fontSize: '1.4rem',
+            width: '44px',
+            height: '44px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}
+          onClick={() => setIsModalOpen(true)}
+        >
+          ⚙️
+        </button>
       </div>
 
+      {/* Skills Bar */}
+      <div style={{
+        padding: '10px 16px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: '12px',
+        borderBottom: '2px solid rgba(255,255,255,0.1)',
+      }}>
+        {/* Skills Equipadas */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          background: 'rgba(255, 255, 255, 0.15)',
+          padding: '6px 12px',
+          borderRadius: '8px',
+          border: '2px solid rgba(255,255,255,0.2)',
+          flex: 1,
+        }}>
+          <div style={{ 
+            background: 'rgba(255, 255, 255, 0.25)', 
+            borderRadius: '6px', 
+            padding: '4px',
+            border: '2px solid rgba(255, 255, 255, 0.3)',
+            width: '36px',
+            height: '36px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <img 
+              src={equippedSkills.pedra} 
+              alt="pedra" 
+              style={{ 
+                width: '28px', 
+                height: '28px', 
+                display: 'block',
+                objectFit: 'contain',
+                imageRendering: 'pixelated'
+              }} 
+            />
+          </div>
+          <div style={{ 
+            background: 'rgba(255, 255, 255, 0.25)', 
+            borderRadius: '6px', 
+            padding: '4px',
+            border: '2px solid rgba(255, 255, 255, 0.3)',
+            width: '36px',
+            height: '36px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <img 
+              src={equippedSkills.papel} 
+              alt="papel" 
+              style={{ 
+                width: '28px', 
+                height: '28px', 
+                display: 'block',
+                objectFit: 'contain',
+                imageRendering: 'pixelated'
+              }} 
+            />
+          </div>
+          <div style={{ 
+            background: 'rgba(255, 255, 255, 0.25)', 
+            borderRadius: '6px', 
+            padding: '4px',
+            border: '2px solid rgba(255, 255, 255, 0.3)',
+            width: '36px',
+            height: '36px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <img 
+              src={equippedSkills.tesoura} 
+              alt="tesoura" 
+              style={{ 
+                width: '28px', 
+                height: '28px', 
+                display: 'block',
+                objectFit: 'contain',
+                imageRendering: 'pixelated'
+              }} 
+            />
+          </div>
+        </div>
+
+        {/* Botões de Navegação */}
+        <button 
+          className='button_footer botao-pulsar' 
+          onClick={() => navigate('/galeria')}
+          style={{
+            padding: '8px 12px',
+            minWidth: '44px',
+            height: '44px',
+            fontSize: '1.3rem',
+          }}
+        >
+          🖼️
+        </button>
+        <button 
+          className='button_footer botao-pulsar' 
+          onClick={() => navigate('/loja')}
+          style={{
+            padding: '8px 12px',
+            minWidth: '44px',
+            height: '44px',
+            fontSize: '1.3rem',
+          }}
+        >
+          🛒
+        </button>
+      </div>
+
+      {/* Main Content - Grid de Fases */}
       <div style={{ flex: 1, overflowY: 'auto', height: '100%' }}>
         <div className="init_container_grid">
           {rooms.map((room, index) => {

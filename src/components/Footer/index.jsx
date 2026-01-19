@@ -6,15 +6,10 @@ export const Footer = ({ setScene }) => {
   
   return (
     <div className='container_footer'>
-      <div style={{ display: 'flex', gap: '10px' }}>
+      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
         <button className='button_footer botao-pulsar'>
           <span className='emoji_footer'>⚔️</span>
           <span>Infinito</span>
-        </button>
-        <button className='button_footer botao-pulsar' onClick={() => navigate('/galeria')}>
-          <span className='emoji_footer' >🖼️</span>
-          <span>⚔️</span>
-          <span>Loja</span>
         </button>
       </div>
     </div>

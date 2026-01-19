@@ -56,16 +56,31 @@ function Game({ initialScene = 'Start' }) {
       },
       trailColor: 'white',
       ownedBackgrounds: ['/assets/background/vila.gif'],
-      equippedBackground: '/assets/background/vila.gif'
+      equippedBackground: '/assets/background/vila.gif',
+      ownedSkills: {
+        pedra: ['/assets/1_pedra.png'],
+        papel: ['/assets/2_papel.png'],
+        tesoura: ['/assets/3_tesoura.png'],
+        calda: ['#95a5a6']
+      },
+      equippedSkills: {
+        pedra: '/assets/1_pedra.png',
+        papel: '/assets/2_papel.png',
+        tesoura: '/assets/3_tesoura.png',
+        calda: '#95a5a6'
+      }
     };
     
     if (saved !== null) {
       const parsed = JSON.parse(saved);
       // Garante que as propriedades existam
       return {
+        ...defaultRegistry,
         ...parsed,
-        ownedBackgrounds: parsed.ownedBackgrounds || ['/assets/background/vila.gif'],
-        equippedBackground: parsed.equippedBackground || '/assets/background/vila.gif'
+        ownedBackgrounds: parsed.ownedBackgrounds || defaultRegistry.ownedBackgrounds,
+        equippedBackground: parsed.equippedBackground || defaultRegistry.equippedBackground,
+        ownedSkills: parsed.ownedSkills || defaultRegistry.ownedSkills,
+        equippedSkills: parsed.equippedSkills || defaultRegistry.equippedSkills
       };
     }
     

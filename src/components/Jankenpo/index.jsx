@@ -79,12 +79,35 @@ const Jankenpo = ({
 
     // Carregamento das imagens
     useEffect(() => {
+        // Buscar as skills equipadas do localStorage
+        const getEquippedSkills = () => {
+            const saved = localStorage.getItem('playerRegistry');
+            if (saved) {
+                const registry = JSON.parse(saved);
+                return {
+                    pedra: registry.equippedSkills?.pedra || '/assets/1_pedra.png',
+                    papel: registry.equippedSkills?.papel || '/assets/2_papel.png',
+                    tesoura: registry.equippedSkills?.tesoura || '/assets/3_tesoura.png',
+                    calda: registry.equippedSkills?.calda || '##717d7e'
+                };
+            }
+            return {
+                pedra: '/assets/1_pedra.png',
+                papel: '/assets/2_papel.png',
+                tesoura: '/assets/3_tesoura.png',
+                calda: '#728081'
+            };
+        };
+
+        const equippedSkills = getEquippedSkills();
+        
         const images = {
-            'pedra': stoneImgSrc,
-            'papel': paperImgSrc,
-            'tesoura': scissorsImgSrc,
+            'pedra': equippedSkills.pedra,
+            'papel': equippedSkills.papel,
+            'tesoura': equippedSkills.tesoura,
             'explosao': explosionImgSrc
         };
+        
         const imagePromises = Object.keys(images).map(key => {
             return new Promise((resolve, reject) => {
                 const img = new Image();
@@ -99,6 +122,8 @@ const Jankenpo = ({
                 acc[key] = img;
                 return acc;
             }, {});
+            // Adicionar a cor da calda
+            imageObjects.trailColor = equippedSkills.calda;
             setLoadedImages(imageObjects);
         }).catch(error => {
             console.error("Error loading images:", error);
@@ -170,6 +195,7 @@ const Jankenpo = ({
                 'common' // Player sempre usa bullets comuns
             );
             newBullet.lastParticleY = canvasRef.current.height - 50;
+            newBullet.isPlayer = true; // Marcar como bullet do player
             setPlayerBullets(prev => [...prev, newBullet]);
             handleBullet(null, 'player');
         }
@@ -322,11 +348,14 @@ const Jankenpo = ({
             const spawnParticlesForBullet = (bullet) => {
                 const dist = Math.abs(bullet.y - bullet.lastParticleY);
                 if (dist > DEFAULT_GAME_CONFIG.PARTICLE_SPAWN_DISTANCE) {
+                    // Player: calda mais para baixo (75%), Inimigo: calda mais para cima (25%)
+                    const yOffset = bullet.isPlayer ? bullet.height * 0.75 : bullet.height * 0.25;
                     const particle = createParticle(
                         bullet.x + bullet.width / 2,
-                        bullet.y + bullet.height / 2
+                        bullet.y + yOffset
                     );
-                    particle.color = bullet.color || 'white'; // Usar a cor do bullet
+                    // Usar a cor equipada para bullets do player
+                    particle.color = bullet.isPlayer ? (loadedImages.trailColor || 'white') : (bullet.color || 'white');
                     particlesRef.current.push(particle);
                     bullet.lastParticleY = bullet.y;
                 }
@@ -345,7 +374,28 @@ const Jankenpo = ({
                     const size = (50 / 2) * scale; // 50 é o tamanho da bala
 
                     context.globalAlpha = 1 - life;
-                    context.fillStyle = p.color || 'white';
+                    
+                    // Suporte a gradientes
+                    if (p.color && p.color.includes('gradient')) {
+                        const gradient = context.createLinearGradient(p.x - size / 2, p.y - size / 2, p.x + size / 2, p.y + size / 2);
+                        // Parse básico de gradiente linear (simplificado)
+                        if (p.color.includes('Arco-Íris') || p.color.includes('#FF0000')) {
+                            gradient.addColorStop(0, '#FF0000');
+                            gradient.addColorStop(0.16, '#FF7F00');
+                            gradient.addColorStop(0.33, '#FFFF00');
+                            gradient.addColorStop(0.5, '#00FF00');
+                            gradient.addColorStop(0.66, '#0000FF');
+                            gradient.addColorStop(0.83, '#4B0082');
+                            gradient.addColorStop(1, '#9400D3');
+                        } else if (p.color.includes('Plasma') || p.color.includes('#FF006E')) {
+                            gradient.addColorStop(0, '#FF006E');
+                            gradient.addColorStop(0.5, '#8338EC');
+                            gradient.addColorStop(1, '#3A86FF');
+                        }
+                        context.fillStyle = gradient;
+                    } else {
+                        context.fillStyle = p.color || 'white';
+                    }
 
                     context.fillRect(
                         p.x - size / 2,
@@ -381,7 +431,7 @@ const Jankenpo = ({
                 context.restore(); // Restaurar o estado
                 
                 // Desenhar barra de HP antes do bullet, ajustada para ficar 40px mais acima
-                drawHPBar(context, b, -60);
+                drawHPBar(context, b, -63);
             });
             
             // Explosões
