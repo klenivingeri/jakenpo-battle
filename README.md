@@ -1,16 +1,75 @@
-# React + Vite
+# Emoji Battle
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Emoji Battle é um jogo divertido baseado no clássico Pedra, Papel e Tesoura, com mecânicas adicionais de combate, raridades e modos de jogo desafiadores.
 
-Currently, two official plugins are available:
+## 🎮 Como Jogar
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Objetivo
+Derrote o inimigo usando o clássico Pedra, Papel e Tesoura! Gerencie seu HP e ataque estrategicamente.
 
-## React Compiler
+### Regras de Combate
+- 🪨 **Pedra** vence Tesoura
+- 📄 **Papel** vence Pedra
+- ✂️ **Tesoura** vence Papel
+- ⚖️ Mesma escolha = **Empate** (ambos sofrem dano)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Mecânicas
+- **HP:** Seus pontos de vida. Se chegar a 0, você perde!
+- **Ataque:** Dano que seus bullets causam ao inimigo
+- **Gold:** Ganhe ouro derrotando bullets inimigos
+- **Raridades:** Bullets inimigos mais raros têm mais HP e dão mais ouro
 
-## Expanding the ESLint configuration
+### Sistema de Raridades
+| Raridade   | Descrição                     |
+|------------|-------------------------------|
+| Comum      | Básico                        |
+| Incomum    | +HP, +Ataque, +Gold                  |
+| Raro       | ++HP, ++Ataque, ++Gold         |
+| Heroico    | +++HP, +++Ataque, +++Gold      |
+| Lendário   | ++++HP, ++++Ataque, ++++Gold   |
+| Mítico     | +++++HP, +++++Ataque, +++++Gold|
+| Imortal    | ++++++HP, ++++++Ataque, ++++++Gold|
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Modos de Jogo
+- **Normal:** Complete a fase derrotando o inimigo ou sobrevivendo até o tempo acabar
+- **Infinito:** Sobreviva o máximo de fases possível. Cada fase fica mais difícil!
+
+### Dicas
+- Fique de olho nas cores dos rastros - indicam raridade
+- Bullets com barras de HP maiores exigem múltiplos acertos
+- Use o ouro ganho para melhorar suas habilidades
+- Em modos avançados, podem vir múltiplos bullets de uma vez!
+
+## 🖼️ Galeria de Imagens
+
+| Cena de Jogo         | Combate Infinito     | Loja de Itens        |
+|----------------------|----------------------|----------------------|
+| ![Jogo](docs/tela_inicial.png) | ![Jogo](docs/tela_inicial.png) | ![Jogo](docs/tela_inicial.png) |
+
+## 🚀 Tecnologias Utilizadas
+- **React** com **Vite** para desenvolvimento rápido
+- **CSS** para estilização moderna e responsiva
+- **React Router** para navegação entre páginas
+
+## 📂 Estrutura do Projeto
+- `src/components`: Componentes reutilizáveis do jogo
+- `src/pages`: Páginas principais do jogo
+- `src/utils`: Funções utilitárias para lógica do jogo
+
+## 🛠️ Como Executar
+1. Clone o repositório:
+   ```bash
+   git clone https://github.com/seu-usuario/emoji-battle.git
+   ```
+2. Instale as dependências:
+   ```bash
+   npm install
+   ```
+3. Inicie o servidor de desenvolvimento:
+   ```bash
+   npm run dev
+   ```
+4. Acesse o jogo em `http://localhost:3000`.
+
+## 📜 Licença
+Este projeto está licenciado sob a [MIT License](LICENSE).
