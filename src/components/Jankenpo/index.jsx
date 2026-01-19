@@ -227,6 +227,7 @@ const Jankenpo = ({
     gameDuration = DEFAULT_GAME_CONFIG.GAME_DURATION, 
     speed = DEFAULT_GAME_CONFIG.BULLET_SPEED, 
     spawnInterval = DEFAULT_GAME_CONFIG.SPAWN_INTERVAL,
+    bulletsPerSpawn = 1, // Quantidade máxima de bullets por spawn
     roomLevel = 1, // Nível da fase atual
     isInfiniteMode = false, // Nova prop para indicar modo infinito
     currentPhase = 1, // Número da fase atual (modo infinito)
@@ -417,25 +418,66 @@ const Jankenpo = ({
         if (isGameOver || !loadedImages || !canvasRef.current) return;
 
         const enemyShootInterval = setInterval(() => {
-            setEnemyBullets(prevBullets => {
-                const bulletTypes = Object.keys(BULLET_CONFIG);
-                const newType = selectRandomBulletType(prevBullets, bulletTypes);
-                const rarity = selectBulletRarity(enemyDropConfig);
-                const newBullet = createBullet(
-                    newType,
-                    canvasRef.current.width / 2 - DEFAULT_GAME_CONFIG.BULLET_SIZE / 2,
-                    0,
-                    DEFAULT_GAME_CONFIG.BULLET_SIZE,
-                    DEFAULT_GAME_CONFIG.BULLET_SIZE,
-                    rarity,
-                    roomLevel // Passa o nível da fase para cálculo de gold
-                );
-                return [...prevBullets, newBullet];
-            });
+            const bulletTypes = Object.keys(BULLET_CONFIG);
+            const canvas = canvasRef.current;
+            const centerX = canvas.width / 2;
+            const bulletSize = DEFAULT_GAME_CONFIG.BULLET_SIZE;
+            
+            // Determinar quantos bullets spawnar baseado em bulletsPerSpawn
+            let bulletsToSpawn = 1;
+            if (bulletsPerSpawn > 1) {
+                const roll = Math.random() * 100;
+                
+                // Sistema de probabilidade progressivo
+                if (bulletsPerSpawn === 2) {
+                    // 40% chance de 2 bullets
+                    bulletsToSpawn = roll < 40 ? 2 : 1;
+                } else if (bulletsPerSpawn === 3) {
+                    // 20% trio, 30% duo, 50% solo
+                    if (roll < 20) bulletsToSpawn = 3;
+                    else if (roll < 50) bulletsToSpawn = 2;
+                    else bulletsToSpawn = 1;
+                } else if (bulletsPerSpawn >= 4) {
+                    // Para valores maiores, distribuir chances
+                    const max = Math.min(bulletsPerSpawn, 7);
+                    if (roll < 10) bulletsToSpawn = max; // 10% chance máximo
+                    else if (roll < 30) bulletsToSpawn = Math.max(2, Math.floor(max * 0.7)); // 20% chance médio-alto
+                    else if (roll < 60) bulletsToSpawn = Math.max(2, Math.floor(max * 0.5)); // 30% chance médio
+                    else if (roll < 80) bulletsToSpawn = 2; // 20% chance duo
+                    else bulletsToSpawn = 1; // 20% chance solo
+                }
+            }
+            
+            const spacing = bulletSize + 15; // Espaçamento entre bullets
+            const totalWidth = (bulletsToSpawn - 1) * spacing;
+            const startX = centerX - totalWidth / 2;
+            
+            // Spawnar bullets com delay de 0.3s entre cada um
+            for (let i = 0; i < bulletsToSpawn; i++) {
+                setTimeout(() => {
+                    setEnemyBullets(prevBullets => {
+                        const newType = selectRandomBulletType(prevBullets, bulletTypes);
+                        const rarity = selectBulletRarity(enemyDropConfig);
+                        const xPos = startX + (i * spacing) - bulletSize / 2;
+                        
+                        const newBullet = createBullet(
+                            newType,
+                            xPos,
+                            0,
+                            bulletSize,
+                            bulletSize,
+                            rarity,
+                            roomLevel
+                        );
+                        
+                        return [...prevBullets, newBullet];
+                    });
+                }, i * 300); // 300ms (0.3s) de delay entre cada bullet
+            }
         }, spawnInterval);
 
         return () => clearInterval(enemyShootInterval);
-    }, [isGameOver, loadedImages, spawnInterval, enemyDropConfig, roomLevel]);
+    }, [isGameOver, loadedImages, spawnInterval, enemyDropConfig, roomLevel, bulletsPerSpawn]);
 
     // Lógica de disparo do jogador
     useEffect(() => {

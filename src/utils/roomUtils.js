@@ -48,12 +48,26 @@ export const generateRooms = (roomCurrent = 0, options = {}) => {
       immortal: { drop: (immortalDrop / total) * 100 }
     };
     
+    // Bullets por spawn aumenta gradualmente com o nível
+    // Nível 1-19: 1 bullet
+    // Nível 20-39: 2 bullets (máximo)
+    // Nível 40-59: 3 bullets (máximo)
+    // Nível 60-79: 4 bullets (máximo)
+    // Nível 80-99: 5 bullets (máximo)
+    // Nível 100: 6 bullets (máximo)
+    let bulletsPerAction = 1;
+    if (level >= 30) bulletsPerAction = 2;
+    if (level >= 60) bulletsPerAction = 3;
+    if (level >= 90) bulletsPerAction = 4;
+    if (level >= 95) bulletsPerAction = 5;
+
+    
     return {
       id: level,
       gameDuration: 30 + Math.floor(i / 3),
       speed: baseSpeed,
       spawnInterval: baseSpawnInterval,
-      bulletsPerAction: 1,
+      bulletsPerAction: bulletsPerAction,
       disableButton: i > roomCurrent,
       enemy: enemyConfig,
       ...(isChaosMode && { isChaosMode: true })
