@@ -1,4 +1,4 @@
-  export const ResultScene = ({gameStats, setScene, isInfiniteMode = false, isChaosMode = false}) => {
+export const ResultScene = ({gameStats, setScene, isInfiniteMode = false, isChaosMode = false}) => {
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -251,48 +251,6 @@
           </div>
         </div>
       </div>
-
-      {/* Botões */}
-      {isInfiniteMode && (
-        <button 
-          className='button_footer' 
-          style={{ 
-            width: '100%',
-            padding: '16px',
-            marginBottom: '10px',
-            fontSize: '1.2rem',
-            fontWeight: 'bold',
-            textTransform: 'uppercase',
-            letterSpacing: '2px',
-            background: '#8e44ad',
-            color: '#ffffff',
-          }} 
-          onClick={() => setScene('GameInfinite')}
-        >
-          🔄 Tentar Novamente
-        </button>
-      )}
-      
-      {isChaosMode && (
-        <button 
-          className='button_footer' 
-          style={{ 
-            width: '100%',
-            padding: '16px',
-            marginBottom: '10px',
-            fontSize: '1.2rem',
-            fontWeight: 'bold',
-            textTransform: 'uppercase',
-            letterSpacing: '2px',
-            background: 'linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3)',
-            color: '#ffffff',
-            textShadow: '2px 2px 0 #000000',
-          }} 
-          onClick={() => setScene('GameChaos')}
-        >
-          🔄 Tentar Novamente
-        </button>
-      )}
 
       {/* Botão de Menu */}
       <button 

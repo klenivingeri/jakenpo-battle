@@ -12,11 +12,12 @@ import Galery from './components/galery';
 import Shop from './components/shop';
 import { getEquippedBackground } from './utils/storageUtils';
 import './App.css';
+import GameTutorial from './components/shared/GameTutorial';
 
 function App() {
   const [bgPos, setBgPos] = useState({ x: 50, y: 50 });
-  
   const [equippedBackground, setEquippedBackground] = useState(getEquippedBackground());
+  const [isTutorialMinimized, setIsTutorialMinimized] = useState(true); // Modal inicia minimizado
 
   // Atualiza o fundo quando o localStorage mudar
   useEffect(() => {
@@ -108,7 +109,10 @@ function App() {
           height: '100vh'
         }}>
           <Routes>
-            <Route path="/" element={<Game initialScene="Start" />} />
+            <Route path="/" element={<>
+              <Game initialScene="Start" />
+              <GameTutorial isVisible={true} isMinimized={isTutorialMinimized} setIsMinimized={setIsTutorialMinimized} />
+            </>} />
             <Route path="/init" element={<InitPage />} />
             <Route path="/game" element={<GamePage />} />
             <Route path="/game-infinite" element={<GamePageInfinite />} />

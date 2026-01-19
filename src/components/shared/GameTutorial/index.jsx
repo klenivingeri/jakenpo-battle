@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import './GameTutorial.css';
 
-const GameTutorial = () => {
-    const [isMinimized, setIsMinimized] = useState(false);
+const GameTutorial = ({ isVisible, isMinimized, setIsMinimized }) => {
+    if (!isVisible) return null;
 
     const toggleMinimize = () => {
         setIsMinimized(!isMinimized);
