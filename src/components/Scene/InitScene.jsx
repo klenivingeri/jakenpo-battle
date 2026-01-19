@@ -158,10 +158,10 @@ export const InitScene = ({ rooms, setRoomCurrent, setActiveRoomIndex, setScene,
         {/* Moedas */}
         <div style={{ display: 'flex', gap: '8px', flex: 1, justifyContent: 'center' }}>
           <InfoBox>
-            <strong style={{ fontSize: '1.4rem' }}>🪙</strong> {playerRegistry.gold}
+            <strong style={{ fontSize: '1rem', marginRight:'4px' }}>🪙</strong> {playerRegistry.gold}
           </InfoBox>
           <InfoBox>
-            <strong style={{ fontSize: '1.4rem' }}>💎</strong> 0
+            <strong style={{ fontSize: '1rem', marginRight:'4px' }}>💎</strong> 0
           </InfoBox>
         </div>
 

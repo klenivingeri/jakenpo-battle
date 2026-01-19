@@ -108,7 +108,7 @@ function GamePage() {
     if (stats.gold > 0) {
       setPlayerRegistry(prev => {
         const newGold = prev.gold + stats.gold;
-        const newXp = prev.xp + stats.gold * 10;
+        const newXp = prev.xp + stats.gold * 2;
         const newLevel = Math.floor(newXp / 100) + 1;
         
         const updatedRegistry = {
