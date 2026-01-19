@@ -185,17 +185,6 @@ function Game({ initialScene = 'Start' }) {
     setScene('EndResult');
   };
 
-  const handleStartGame = (index) => {
-    setPlayer(p => ({ ...p, hp: 10 })); // Reset player HP
-    setEnemy(e => ({ ...e, hp: 10 })); // Reset enemy HP
-    setActiveRoomIndex(index);
-    if(isMusicOn){
-      backgroundMusic.current.play();
-    }
-    
-    setScene('Game');
-  };
-
   const currentRoom = roomsWithCosts[activeRoomIndex];
 
   const stateScene = {
@@ -237,6 +226,7 @@ function Game({ initialScene = 'Start' }) {
     ),
     Game: (
       <GameScene
+        key={`game-${activeRoomIndex}`}
         handleBullet={handleBullet}
         player={player}
         setPlayer={setPlayer}

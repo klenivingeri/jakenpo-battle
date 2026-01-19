@@ -67,6 +67,13 @@ const applyCollisionDamage = (pBullet, eBullet, result, setStats, setExplosions,
                 ...createExplosion(pBullet.x, pBullet.y - 25),
                 goldText: `+${eBullet.gold}`
             }]);
+        } else if (result === 'draw') {
+            const halfGold = Math.floor(eBullet.gold / 2);
+            setGold(prevGold => prevGold + halfGold);
+            setExplosions(prev => [...prev, {
+                ...createExplosion(pBullet.x, pBullet.y - 25),
+                goldText: `+${halfGold}`
+            }]);
         }
     }
 
@@ -241,8 +248,30 @@ const Jankenpo = ({
     const [loadedImages, setLoadedImages] = useState(null);
     const [isGameOver, setIsGameOver] = useState(false);
     const [gold, setGold] = useState(0); // Estado para armazenar o gold acumulado
+    const [isInitialized, setIsInitialized] = useState(false); // Flag para indicar inicialização
     const explosionAudioRef = useRef(new Audio(explosionSoundSrc));
     const { vibrateHit, vibrateDamage } = useVibration();
+
+    // Reset completo quando a room muda (gameDuration e roomLevel são identificadores da room)
+    useEffect(() => {
+        // Resetar todos os estados para valores iniciais
+        setEnemyBullets([]);
+        setPlayerBullets([]);
+        setExplosions([]);
+        setParticles([]);
+        setStats({ wins: 0, losses: 0, draws: 0 });
+        setTimeLeft(gameDuration);
+        setIsGameOver(false);
+        setGold(0);
+        setIsInitialized(false); // Marca como não inicializado durante o reset
+        
+        // Garantir que o HP do player e enemy estejam resetados
+        setPlayer({ hp: 10, atk: 1 });
+        setEnemy({ hp: 10, atk: 1 });
+        
+        // Após um pequeno delay, marca como inicializado
+        setTimeout(() => setIsInitialized(true), 50);
+    }, [gameDuration, roomLevel, setPlayer, setEnemy]); // Reage às mudanças de room
 
     // Redimensionamento do Canvas
     useEffect(() => {
@@ -298,7 +327,8 @@ const Jankenpo = ({
 
     // Verificador de condição de fim de jogo
     useEffect(() => {
-        if (isGameOver) return;
+        // Não verifica fim de jogo até estar inicializado
+        if (isGameOver || !isInitialized) return;
 
         if (player.hp <= 0 || timeLeft <= 0) {
             setIsGameOver(true);
@@ -308,7 +338,7 @@ const Jankenpo = ({
             setIsGameOver(true);
             handleGameEnd({ ...stats, result: 'win', gold });
         }
-    }, [player.hp, enemy.hp, timeLeft, isGameOver, handleGameEnd, stats]);
+    }, [player.hp, enemy.hp, timeLeft, isGameOver, handleGameEnd, stats, gold, isInitialized]);
 
 
     // Temporizador do jogo

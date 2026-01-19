@@ -5,15 +5,20 @@ export const PurchaseModal = ({
   onClose, 
   room, 
   playerGold, 
-  onPurchase 
+  onPurchase,
+  roomStars = []
 }) => {
   if (!isOpen || !room) return null
 
   const canAfford = playerGold >= room.unlockCost
   const remaining = Math.max(0, room.unlockCost - playerGold)
+  
+  // Verificar se tem pelo menos 1 estrela na fase anterior
+  const previousRoomIndex = room.id - 2; // room.id é 1-based
+  const hasPreviousRoomStar = previousRoomIndex < 0 || (roomStars[previousRoomIndex] >= 1)
 
   const handlePurchase = () => {
-    if (canAfford) {
+    if (canAfford && hasPreviousRoomStar) {
       onPurchase(room)
       onClose()
     }
@@ -89,7 +94,14 @@ export const PurchaseModal = ({
           </div>
 
           {/* Botão de Compra */}
-          {canAfford ? (
+          {!hasPreviousRoomStar ? (
+            <div className="purchase-insufficient">
+              <p>⚠️ Requisito não atendido</p>
+              <p className="purchase-hint">
+                Você precisa ter pelo menos 1 ⭐ na Fase {room.id - 1}!
+              </p>
+            </div>
+          ) : canAfford ? (
             <button 
               className="purchase-button purchase-button-buy"
               onClick={handlePurchase}

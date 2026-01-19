@@ -133,7 +133,7 @@ export const InitScene = ({ rooms, setRoomCurrent, setActiveRoomIndex, setScene,
       setActiveRoomIndex(index);
       setScene('Game');
     } else if (isNextRoom) {
-      // Próxima fase - abre modal de compra
+      // Próxima fase - sempre abre modal de compra para mostrar requisitos
       setSelectedRoom(room);
       setIsPurchaseModalOpen(true);
     }
@@ -380,6 +380,7 @@ export const InitScene = ({ rooms, setRoomCurrent, setActiveRoomIndex, setScene,
         room={selectedRoom}
         playerGold={playerRegistry.gold}
         onPurchase={handlePurchase}
+        roomStars={roomStars}
       />
     </div>
   );

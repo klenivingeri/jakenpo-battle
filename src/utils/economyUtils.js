@@ -7,6 +7,14 @@
  * - Necessidade de 3+ rodadas para progressão
  */
 
+import bulletAttributesData from '../data/bullet_attributes.json'
+
+// Converte array em objeto para acesso mais rápido
+const bulletAttributes = bulletAttributesData.reduce((acc, attr) => {
+  acc[attr.id] = attr
+  return acc
+}, {})
+
 /**
  * Parâmetros do sistema econômico
  * Ajuste estes valores para calibrar a progressão
@@ -56,18 +64,10 @@ export const calculateGoldMultiplier = (level) => {
  * @returns {number} Quantidade de gold
  */
 export const calculateBulletGold = (rarity, level) => {
-  // Valores base por raridade
-  const baseGold = {
-    common: 1,
-    uncommon: 2,
-    rare: 3,
-    heroic: 4,
-    legendary: 5,
-    mythic: 6,
-    immortal: 7
-  }
+  // Busca o valor base do gold no bullet_attributes.json
+  const attributes = bulletAttributes[rarity]
+  const base = attributes ? attributes.gold : 2
   
-  const base = baseGold[rarity] || 1
   const multiplier = calculateGoldMultiplier(level)
   
   return Math.floor(base * multiplier)
