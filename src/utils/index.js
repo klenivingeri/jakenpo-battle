@@ -19,3 +19,30 @@ export {
   updateEconomyConfig,
   ECONOMY_CONFIG
 } from './economyUtils'
+
+// Utilitários de armazenamento (localStorage)
+export {
+  STORAGE_KEYS,
+  DEFAULT_PLAYER_REGISTRY,
+  getFromStorage,
+  saveToStorage,
+  getPlayerRegistry,
+  savePlayerRegistry,
+  getEquippedSkills,
+  getEquippedBackground,
+  updatePlayerGold,
+  addPlayerXP,
+  purchaseSkill,
+  equipSkill,
+  purchaseBackground,
+  equipBackground,
+  getIsMusicOn,
+  setIsMusicOn,
+  getRoomCurrent,
+  setRoomCurrent,
+  getGameStats,
+  setGameStats,
+  getRoomStars,
+  setRoomStars
+} from './storageUtils'
+

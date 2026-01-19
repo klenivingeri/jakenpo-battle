@@ -7,6 +7,16 @@ import { InitScene } from './components/Scene/InitScene';
 import { ResultScene } from './components/Scene/ResultScene';
 import { toggleFullScreen } from './help/fullScreen';
 import { calculateUnlockCost } from './utils/economyUtils';
+import {
+  getPlayerRegistry,
+  getIsMusicOn,
+  setIsMusicOn,
+  getRoomCurrent,
+  getGameStats,
+  getRoomStars,
+  saveToStorage,
+  STORAGE_KEYS
+} from './utils/storageUtils';
 
 function Game({ initialScene = 'Start' }) {
   const navigate = useNavigate();
@@ -14,10 +24,7 @@ function Game({ initialScene = 'Start' }) {
   const [enemy, setEnemy] = useState({ hp: 10, atk: 1 });
   const [disableButtonPlayer, setdisableButtonPlayer] = useState(false);
   const [scene, setScene] = useState(initialScene);
-  const [isMusicOn, setIsMusicOn] = useState(() => {
-    const saved = localStorage.getItem('isMusicOn');
-    return saved !== null ? JSON.parse(saved) : true;
-  });
+  const [isMusicOn, setIsMusicOnState] = useState(() => getIsMusicOn());
 
   // Sincroniza o estado da cena quando a prop initialScene mudar
   useEffect(() => {
@@ -26,66 +33,14 @@ function Game({ initialScene = 'Start' }) {
 
 
 
-  const [roomCurrent, setRoomCurrent] = useState(() => {
-    const saved = localStorage.getItem('roomCurrent');
-    return saved !== null ? JSON.parse(saved) : 0;
-  });
+  const [roomCurrent, setRoomCurrent] = useState(() => getRoomCurrent());
 
-  const [gameStats, setGameStats] = useState(() => {
-    const saved = localStorage.getItem('gameStats');
-    return saved !== null ? JSON.parse(saved) : { wins: 0, losses: 0, draws: 0, result: '' };
-  });
+  const [gameStats, setGameStats] = useState(() => getGameStats());
 
-  const [roomStars, setRoomStars] = useState(() => {
-    const saved = localStorage.getItem('roomStars');
-    return saved !== null ? JSON.parse(saved) : Array(100).fill(0);
-  });
+  const [roomStars, setRoomStars] = useState(() => getRoomStars());
   const [activeRoomIndex, setActiveRoomIndex] = useState(0);
 
-  // Registry/Inventário do Player
-  const [playerRegistry, setPlayerRegistry] = useState(() => {
-    const saved = localStorage.getItem('playerRegistry');
-    const defaultRegistry = {
-      gold: 0,
-      xp: 0,
-      level: 1,
-      currentSkins: {
-        pedra: '/assets/1_pedra.png',
-        papel: '/assets/2_papel.png',
-        tesoura: '/assets/3_tesoura.png'
-      },
-      trailColor: 'white',
-      ownedBackgrounds: ['/assets/background/vila.gif'],
-      equippedBackground: '/assets/background/vila.gif',
-      ownedSkills: {
-        pedra: ['/assets/1_pedra.png'],
-        papel: ['/assets/2_papel.png'],
-        tesoura: ['/assets/3_tesoura.png'],
-        calda: ['#95a5a6']
-      },
-      equippedSkills: {
-        pedra: '/assets/1_pedra.png',
-        papel: '/assets/2_papel.png',
-        tesoura: '/assets/3_tesoura.png',
-        calda: '#95a5a6'
-      }
-    };
-    
-    if (saved !== null) {
-      const parsed = JSON.parse(saved);
-      // Garante que as propriedades existam
-      return {
-        ...defaultRegistry,
-        ...parsed,
-        ownedBackgrounds: parsed.ownedBackgrounds || defaultRegistry.ownedBackgrounds,
-        equippedBackground: parsed.equippedBackground || defaultRegistry.equippedBackground,
-        ownedSkills: parsed.ownedSkills || defaultRegistry.ownedSkills,
-        equippedSkills: parsed.equippedSkills || defaultRegistry.equippedSkills
-      };
-    }
-    
-    return defaultRegistry;
-  });
+  const [playerRegistry, setPlayerRegistry] = useState(() => getPlayerRegistry());
 
     const backgroundMusic = useRef(new Audio('/assets/song/song-background.mp3'));
 
@@ -99,14 +54,14 @@ function Game({ initialScene = 'Start' }) {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('roomCurrent', JSON.stringify(roomCurrent));
-    localStorage.setItem('gameStats', JSON.stringify(gameStats));
-    localStorage.setItem('roomStars', JSON.stringify(roomStars));
-    localStorage.setItem('playerRegistry', JSON.stringify(playerRegistry));
+    saveToStorage(STORAGE_KEYS.ROOM_CURRENT, roomCurrent);
+    saveToStorage(STORAGE_KEYS.GAME_STATS, gameStats);
+    saveToStorage(STORAGE_KEYS.ROOM_STARS, roomStars);
+    saveToStorage(STORAGE_KEYS.PLAYER_REGISTRY, playerRegistry);
   }, [roomCurrent, gameStats, roomStars, playerRegistry]);
 
   useEffect(() => {
-    localStorage.setItem('isMusicOn', JSON.stringify(isMusicOn));
+    setIsMusicOn(isMusicOn);
   }, [isMusicOn]);
 
   const handleInit = () => {

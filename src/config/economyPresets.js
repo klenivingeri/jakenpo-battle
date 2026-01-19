@@ -6,6 +6,7 @@
  */
 
 import { updateEconomyConfig } from './src/utils/economyUtils'
+import { getFromStorage, saveToStorage, STORAGE_KEYS } from '../utils/storageUtils'
 
 // ========================================
 // 🎯 PRESETS PRONTOS PARA USO
@@ -273,9 +274,9 @@ export const trackEconomyMetrics = (event, data) => {
   }
 
   // Salvar localmente para análise offline
-  const history = JSON.parse(localStorage.getItem('economyHistory') || '[]')
+  const history = getFromStorage(STORAGE_KEYS.ECONOMY_HISTORY, [])
   history.push(metrics)
-  localStorage.setItem('economyHistory', JSON.stringify(history.slice(-100)))
+  saveToStorage(STORAGE_KEYS.ECONOMY_HISTORY, history.slice(-100))
 }
 
 // ========================================

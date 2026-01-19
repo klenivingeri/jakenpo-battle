@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Modal from '../shared/Modal';
 import { PurchaseModal } from '../shared/PurchaseModal';
 import { Footer } from '../Footer';
+import { getEquippedSkills, getPlayerRegistry } from '../../utils/storageUtils';
 import './GameScene.css';
 
 
@@ -58,41 +59,19 @@ export const InitScene = ({ rooms, setRoomCurrent, setActiveRoomIndex, setScene,
   const [selectedRoom, setSelectedRoom] = useState(null);
 
   // Estado local para as skills equipadas
-  const [equippedSkills, setEquippedSkills] = useState(() => {
-    const saved = localStorage.getItem('playerRegistry');
-    if (saved) {
-      const registry = JSON.parse(saved);
-      return registry.equippedSkills || {
-        pedra: '/assets/1_pedra.png',
-        papel: '/assets/2_papel.png',
-        tesoura: '/assets/3_tesoura.png'
-      };
-    }
-    return {
-      pedra: '/assets/1_pedra.png',
-      papel: '/assets/2_papel.png',
-      tesoura: '/assets/3_tesoura.png'
-    };
-  });
+  const [equippedSkills, setEquippedSkills] = useState(() => getEquippedSkills());
 
   // Atualiza as skills quando houver mudanças na loja
   useEffect(() => {
     const handleSkillsChanged = () => {
-      const saved = localStorage.getItem('playerRegistry');
-      if (saved) {
-        const registry = JSON.parse(saved);
-        setEquippedSkills(registry.equippedSkills || {
-          pedra: '/assets/1_pedra.png',
-          papel: '/assets/2_papel.png',
-          tesoura: '/assets/3_tesoura.png'
-        });
-        setPlayerRegistry(prev => ({
-          ...prev,
-          equippedSkills: registry.equippedSkills,
-          ownedSkills: registry.ownedSkills,
-          gold: registry.gold
-        }));
-      }
+      const registry = getPlayerRegistry();
+      setEquippedSkills(registry.equippedSkills);
+      setPlayerRegistry(prev => ({
+        ...prev,
+        equippedSkills: registry.equippedSkills,
+        ownedSkills: registry.ownedSkills,
+        gold: registry.gold
+      }));
     };
 
     window.addEventListener('skillsChanged', handleSkillsChanged);

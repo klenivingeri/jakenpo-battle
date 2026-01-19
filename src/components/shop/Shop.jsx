@@ -1,74 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import skillsData from '../../data/skill_bullet.json';
+import { getPlayerRegistry, savePlayerRegistry, purchaseSkill, equipSkill } from '../../utils/storageUtils';
 
 const Shop = () => {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState('pedra');
   const [selected, setSelected] = useState(null);
-  const [playerRegistry, setPlayerRegistry] = useState(() => {
-    const saved = localStorage.getItem('playerRegistry');
-    const defaultRegistry = {
-      gold: 0,
-      ownedSkills: {
-        pedra: ['/assets/1_pedra_0.png'],
-        papel: [],
-        tesoura: [],
-        calda: ['#FF0000']
-      },
-      equippedSkills: {
-        pedra: '/assets/1_pedra_0.png',
-        papel: null,
-        tesoura: null,
-        calda: '#FF0000'
-      }
-    };
-
-    if (saved !== null) {
-      const parsed = JSON.parse(saved);
-      return {
-        ...parsed,
-        ownedSkills: {
-          ...defaultRegistry.ownedSkills,
-          ...parsed.ownedSkills
-        },
-        equippedSkills: {
-          ...defaultRegistry.equippedSkills,
-          ...parsed.equippedSkills
-        }
-      };
-    }
-
-    return defaultRegistry;
-  });
+  const [playerRegistry, setPlayerRegistry] = useState(() => getPlayerRegistry());
 
   useEffect(() => {
-    localStorage.setItem('playerRegistry', JSON.stringify(playerRegistry));
+    savePlayerRegistry(playerRegistry);
     window.dispatchEvent(new Event('skillsChanged'));
   }, [playerRegistry]);
 
   const handlePurchase = (skill, category) => {
     const itemId = skill.path || skill.color;
-    if (playerRegistry.gold >= skill.price && !playerRegistry.ownedSkills[category].includes(itemId)) {
-      setPlayerRegistry(prev => ({
-        ...prev,
-        gold: prev.gold - skill.price,
-        ownedSkills: {
-          ...prev.ownedSkills,
-          [category]: [...prev.ownedSkills[category], itemId]
-        }
-      }));
+    const updated = purchaseSkill(category, itemId, skill.price);
+    if (updated) {
+      setPlayerRegistry(updated);
     }
   };
 
   const handleEquip = (itemId, category) => {
-    setPlayerRegistry(prev => ({
-      ...prev,
-      equippedSkills: {
-        ...prev.equippedSkills,
-        [category]: itemId
-      }
-    }));
+    const updated = equipSkill(category, itemId);
+    setPlayerRegistry(updated);
   };
 
   const isOwned = (itemId, category) => playerRegistry.ownedSkills[category]?.includes(itemId);

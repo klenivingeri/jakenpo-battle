@@ -14,6 +14,7 @@ import {
   createExplosion,
   drawHPBar
 } from '../../utils/gameUtils';
+import { getEquippedSkills } from '../../utils/storageUtils';
 
 // Importação das imagens
 import stoneImgSrc from '/assets/1_pedra.png';
@@ -21,6 +22,190 @@ import paperImgSrc from '/assets/2_papel.png';
 import scissorsImgSrc from '/assets/3_tesoura.png';
 import explosionImgSrc from '/assets/explosao.png';
 import explosionSoundSrc from '/assets/song/song-explosion.mp3';
+
+// Função auxiliar para renderizar um bullet no canvas
+const renderBullet = (context, bullet, loadedImages, isRotated = false, hpBarOffset = 5) => {
+    if (isRotated) {
+        context.save();
+        context.translate(bullet.x + bullet.width / 2, bullet.y + bullet.height / 2);
+        context.rotate(Math.PI);
+        context.drawImage(loadedImages[bullet.type], -bullet.width / 2, -bullet.height / 2, bullet.width, bullet.height);
+        context.restore();
+    } else {
+        context.drawImage(loadedImages[bullet.type], bullet.x, bullet.y, bullet.width, bullet.height);
+    }
+    drawHPBar(context, bullet, hpBarOffset);
+};
+
+// Função auxiliar para aplicar dano e criar explosões na colisão
+const applyCollisionDamage = (pBullet, eBullet, result, setStats, setExplosions, setGold, vibrateHit) => {
+    let pDamage = 0;
+    let eDamage = 0;
+
+    if (result === 'win') {
+        eDamage = pBullet.atk;
+        setStats(s => ({...s, wins: s.wins + 1}));
+        vibrateHit();
+    } else if (result === 'loss') {
+        pDamage = eBullet.atk;
+        setStats(s => ({...s, losses: s.losses + 1}));
+    } else {
+        pDamage = eBullet.atk;
+        eDamage = pBullet.atk;
+        setStats(s => ({...s, draws: s.draws + 1}));
+    }
+
+    pBullet.hp -= pDamage;
+    eBullet.hp -= eDamage;
+
+    if (pBullet.hp <= 0) pBullet.active = false;
+    if (eBullet.hp <= 0) {
+        eBullet.active = false;
+        if (result === 'win') {
+            setGold(prevGold => prevGold + eBullet.gold);
+            setExplosions(prev => [...prev, {
+                ...createExplosion(pBullet.x, pBullet.y - 25),
+                goldText: `+${eBullet.gold}`
+            }]);
+        }
+    }
+
+    return !pBullet.active;
+};
+
+// Função auxiliar para verificar limites e aplicar dano de boundary
+const handleBulletBoundaryCheck = (bullets, canvas, isPlayerBullet, setEntity, setExplosions, vibrateFn = null) => {
+    const activeBullets = [];
+    const boundaryLimit = isPlayerBullet ? 10 : canvas.height - 10;
+    const yOffset = isPlayerBullet ? -10 : -40;
+
+    bullets.forEach(bullet => {
+        if (bullet.active) {
+            const outOfBounds = isPlayerBullet ? bullet.y < boundaryLimit : bullet.y > boundaryLimit;
+            if (outOfBounds) {
+                bullet.active = false;
+                setExplosions(prev => [...prev, createExplosion(bullet.x, bullet.y + yOffset)]);
+                setEntity(e => ({ ...e, hp: e.hp - bullet.atk }));
+                if (vibrateFn) vibrateFn();
+            } else {
+                activeBullets.push(bullet);
+            }
+        }
+    });
+
+    return activeBullets;
+};
+
+// Função auxiliar para gerar partículas para bullets
+const spawnParticlesForBullets = (bullets, particles, loadedImages, config) => {
+    bullets.forEach(bullet => {
+        const dist = Math.abs(bullet.y - bullet.lastParticleY);
+        if (dist > config.PARTICLE_SPAWN_DISTANCE) {
+            const yOffset = bullet.isPlayer ? bullet.height * 0.75 : bullet.height * 0.25;
+            const particle = createParticle(
+                bullet.x + bullet.width / 2,
+                bullet.y + yOffset
+            );
+            particle.color = bullet.isPlayer ? (loadedImages.trailColor || 'white') : (bullet.color || 'white');
+            particles.push(particle);
+            bullet.lastParticleY = bullet.y;
+        }
+    });
+};
+
+// Função auxiliar para criar gradiente baseado na cor
+const createGradientForColor = (context, color, x, y, size) => {
+    const gradient = context.createLinearGradient(x - size / 2, y - size / 2, x + size / 2, y + size / 2);
+    
+    if (color.includes('Arco-Íris') || color.includes('#FF0000')) {
+        gradient.addColorStop(0, '#FF0000');
+        gradient.addColorStop(0.16, '#FF7F00');
+        gradient.addColorStop(0.33, '#FFFF00');
+        gradient.addColorStop(0.5, '#00FF00');
+        gradient.addColorStop(0.66, '#0000FF');
+        gradient.addColorStop(0.83, '#4B0082');
+        gradient.addColorStop(1, '#9400D3');
+    } else if (color.includes('Plasma') || color.includes('#FF006E')) {
+        gradient.addColorStop(0, '#FF006E');
+        gradient.addColorStop(0.5, '#8338EC');
+        gradient.addColorStop(1, '#3A86FF');
+    }
+    
+    return gradient;
+};
+
+// Função auxiliar para renderizar e atualizar partículas
+const renderParticles = (context, particles, now, config) => {
+    const activeParticles = [];
+    
+    particles.forEach(p => {
+        const life = (now - p.createdAt) / config.PARTICLE_LIFETIME;
+        if (life < 1) {
+            activeParticles.push(p);
+
+            const scale = 1 - life;
+            const size = (50 / 2) * scale;
+
+            context.globalAlpha = 1 - life;
+            
+            if (p.color && p.color.includes('gradient')) {
+                context.fillStyle = createGradientForColor(context, p.color, p.x, p.y, size);
+            } else {
+                context.fillStyle = p.color || 'white';
+            }
+
+            context.fillRect(p.x - size / 2, p.y - size / 2, size, size);
+        }
+    });
+    
+    context.globalAlpha = 1;
+    return activeParticles;
+};
+
+// Função auxiliar para renderizar explosões
+const renderExplosions = (context, explosions, loadedImages) => {
+    const activeExplosions = [];
+    
+    explosions.forEach(exp => {
+        if (exp.anim < 9) {
+            const frameWidth = loadedImages['explosao'].width / 3;
+            const frameHeight = loadedImages['explosao'].height / 3;
+
+            const frame = exp.anim;
+            const sx = (frame % 3) * frameWidth;
+            const sy = Math.floor(frame / 3) * frameHeight;
+
+            context.drawImage(
+                loadedImages['explosao'],
+                sx, sy, frameWidth, frameHeight,
+                exp.x, exp.y, 50, 50
+            );
+
+            if (exp.goldText) {
+                context.fillStyle = 'orange';
+                context.font = 'bold 16px Arial';
+                context.textAlign = 'center';
+                context.fillText(exp.goldText, exp.x + 25, exp.y - 10);
+            }
+
+            exp.animCounter++;
+            if (exp.animCounter >= exp.animDelay) {
+                exp.anim++;
+                exp.animCounter = 0;
+            }
+            activeExplosions.push(exp);
+        }
+    });
+    
+    return activeExplosions;
+};
+
+// Função auxiliar para atualizar bullets
+const updateBullets = (bullets, speed, now, canvasWidth, config) => {
+    bullets.forEach(b => {
+        updateBulletTransform(b, speed, now, canvasWidth, config.ANIMATION_DURATION);
+    });
+};
 
 const Jankenpo = ({ 
     handleBullet, 
@@ -79,26 +264,6 @@ const Jankenpo = ({
 
     // Carregamento das imagens
     useEffect(() => {
-        // Buscar as skills equipadas do localStorage
-        const getEquippedSkills = () => {
-            const saved = localStorage.getItem('playerRegistry');
-            if (saved) {
-                const registry = JSON.parse(saved);
-                return {
-                    pedra: registry.equippedSkills?.pedra || '/assets/1_pedra.png',
-                    papel: registry.equippedSkills?.papel || '/assets/2_papel.png',
-                    tesoura: registry.equippedSkills?.tesoura || '/assets/3_tesoura.png',
-                    calda: registry.equippedSkills?.calda || '##717d7e'
-                };
-            }
-            return {
-                pedra: '/assets/1_pedra.png',
-                papel: '/assets/2_papel.png',
-                tesoura: '/assets/3_tesoura.png',
-                calda: '#728081'
-            };
-        };
-
         const equippedSkills = getEquippedSkills();
         
         const images = {
@@ -230,13 +395,8 @@ const Jankenpo = ({
             // Mover e redimensionar balas
             const now = performance.now();
 
-            playerBulletsRef.current.forEach(b => {
-                updateBulletTransform(b, -speed, now, canvas.width, DEFAULT_GAME_CONFIG.ANIMATION_DURATION);
-            });
-
-            enemyBulletsRef.current.forEach(b => {
-                updateBulletTransform(b, speed, now, canvas.width, DEFAULT_GAME_CONFIG.ANIMATION_DURATION);
-            });
+            updateBullets(playerBulletsRef.current, -speed, now, canvas.width, DEFAULT_GAME_CONFIG);
+            updateBullets(enemyBulletsRef.current, speed, now, canvas.width, DEFAULT_GAME_CONFIG);
 
             // --- Detecção de Colisão ---
             for (const pBullet of playerBulletsRef.current) {
@@ -254,50 +414,12 @@ const Jankenpo = ({
                             explosionAudioRef.current.play().catch(e => console.error("Error playing sound:", e));
                         }
 
-                        // Sistema de dano baseado em HP
-                        let pDamage = 0;
-                        let eDamage = 0;
-
-                        if (result === 'win') {
-                            // Jogador ganha: inimigo recebe dano total
-                            eDamage = pBullet.atk;
-                            setStats(s => ({...s, wins: s.wins + 1}));
-                            vibrateHit();
-                        } else if (result === 'loss') {
-                            // Jogador perde: jogador recebe dano total
-                            pDamage = eBullet.atk;
-                            setStats(s => ({...s, losses: s.losses + 1}));
-                        } else {
-                            // Empate: ambos recebem o dano total
-                            pDamage = eBullet.atk;
-                            eDamage = pBullet.atk;
-                            setStats(s => ({...s, draws: s.draws + 1}));
-                        }
-
-                        // Aplicar dano
-                        pBullet.hp -= pDamage;
-                        eBullet.hp -= eDamage;
-
-                        // Verificar se bullets foram destruídos
-                        if (pBullet.hp <= 0) {
-                            pBullet.active = false;
-                        }
-                        if (eBullet.hp <= 0) {
-                            eBullet.active = false;
-                            
-                            // Adicionar gold apenas quando o inimigo é destruído
-                            if (result === 'win') {
-                                setGold(prevGold => prevGold + eBullet.gold);
-                                // Mostrar o ganho de gold na tela
-                                setExplosions(prev => [...prev, {
-                                    ...createExplosion(pBullet.x, pBullet.y - 25),
-                                    goldText: `+${eBullet.gold}`
-                                }]);
-                            }
-                        }
+                        const shouldBreak = applyCollisionDamage(
+                            pBullet, eBullet, result, setStats, 
+                            setExplosions, setGold, vibrateHit
+                        );
                         
-                        // Se a bala do jogador foi destruída, não é necessário verificar contra outras balas inimigas
-                        if (!pBullet.active) {
+                        if (shouldBreak) {
                             break; 
                         }
                     }
@@ -305,32 +427,13 @@ const Jankenpo = ({
             }
 
             // --- Filtragem e Verificação de Limites ---
-            const activePlayerBullets = [];
-            playerBulletsRef.current.forEach(pBullet => {
-                if (pBullet.active) {
-                    if (pBullet.y < +10) { // A bala saiu 100px do topo da tela
-                        pBullet.active = false; // Desativar a bala
-                        setExplosions(prev => [...prev, createExplosion(pBullet.x, pBullet.y - 10)]); // Criar explosão um pouco mais abaixo
-                        setEnemy(e => ({ ...e, hp: e.hp - pBullet.atk })); // O inimigo perde HP baseado no atk do bullet
-                    } else {
-                        activePlayerBullets.push(pBullet);
-                    }
-                }
-            });
+            const activePlayerBullets = handleBulletBoundaryCheck(
+                playerBulletsRef.current, canvas, true, setEnemy, setExplosions
+            );
 
-            const activeEnemyBullets = [];
-            enemyBulletsRef.current.forEach(eBullet => {
-                if (eBullet.active) {
-                    if (eBullet.y > canvas.height - 10) {
-                        eBullet.active = false;
-                        setPlayer(p => ({ ...p, hp: p.hp - eBullet.atk })); // Player perde HP baseado no atk do bullet
-                        vibrateDamage();
-                        setExplosions(prev => [...prev, createExplosion(eBullet.x, eBullet.y - 40)]);
-                    } else {
-                        activeEnemyBullets.push(eBullet);
-                    }
-                }
-            });
+            const activeEnemyBullets = handleBulletBoundaryCheck(
+                enemyBulletsRef.current, canvas, false, setPlayer, setExplosions, vibrateDamage
+            );
 
 
             // Disparar re-renderização se a contagem de balas mudar
@@ -345,67 +448,11 @@ const Jankenpo = ({
             const particleNow = performance.now();
 
             // Gerar novas partículas
-            const spawnParticlesForBullet = (bullet) => {
-                const dist = Math.abs(bullet.y - bullet.lastParticleY);
-                if (dist > DEFAULT_GAME_CONFIG.PARTICLE_SPAWN_DISTANCE) {
-                    // Player: calda mais para baixo (75%), Inimigo: calda mais para cima (25%)
-                    const yOffset = bullet.isPlayer ? bullet.height * 0.75 : bullet.height * 0.25;
-                    const particle = createParticle(
-                        bullet.x + bullet.width / 2,
-                        bullet.y + yOffset
-                    );
-                    // Usar a cor equipada para bullets do player
-                    particle.color = bullet.isPlayer ? (loadedImages.trailColor || 'white') : (bullet.color || 'white');
-                    particlesRef.current.push(particle);
-                    bullet.lastParticleY = bullet.y;
-                }
-            };
-            playerBulletsRef.current.forEach(spawnParticlesForBullet);
-            enemyBulletsRef.current.forEach(spawnParticlesForBullet);
+            spawnParticlesForBullets(playerBulletsRef.current, particlesRef.current, loadedImages, DEFAULT_GAME_CONFIG);
+            spawnParticlesForBullets(enemyBulletsRef.current, particlesRef.current, loadedImages, DEFAULT_GAME_CONFIG);
 
             // Atualizar e desenhar partículas
-            const activeParticles = [];
-            particlesRef.current.forEach(p => {
-                const life = (particleNow - p.createdAt) / DEFAULT_GAME_CONFIG.PARTICLE_LIFETIME;
-                if (life < 1) {
-                    activeParticles.push(p);
-
-                    const scale = 1 - life;
-                    const size = (50 / 2) * scale; // 50 é o tamanho da bala
-
-                    context.globalAlpha = 1 - life;
-                    
-                    // Suporte a gradientes
-                    if (p.color && p.color.includes('gradient')) {
-                        const gradient = context.createLinearGradient(p.x - size / 2, p.y - size / 2, p.x + size / 2, p.y + size / 2);
-                        // Parse básico de gradiente linear (simplificado)
-                        if (p.color.includes('Arco-Íris') || p.color.includes('#FF0000')) {
-                            gradient.addColorStop(0, '#FF0000');
-                            gradient.addColorStop(0.16, '#FF7F00');
-                            gradient.addColorStop(0.33, '#FFFF00');
-                            gradient.addColorStop(0.5, '#00FF00');
-                            gradient.addColorStop(0.66, '#0000FF');
-                            gradient.addColorStop(0.83, '#4B0082');
-                            gradient.addColorStop(1, '#9400D3');
-                        } else if (p.color.includes('Plasma') || p.color.includes('#FF006E')) {
-                            gradient.addColorStop(0, '#FF006E');
-                            gradient.addColorStop(0.5, '#8338EC');
-                            gradient.addColorStop(1, '#3A86FF');
-                        }
-                        context.fillStyle = gradient;
-                    } else {
-                        context.fillStyle = p.color || 'white';
-                    }
-
-                    context.fillRect(
-                        p.x - size / 2,
-                        p.y - size / 2,
-                        size,
-                        size
-                    );
-                }
-            });
-            context.globalAlpha = 1;
+            const activeParticles = renderParticles(context, particlesRef.current, particleNow, DEFAULT_GAME_CONFIG);
 
             if (activeParticles.length !== particlesRef.current.length) {
                 setParticles(activeParticles);
@@ -414,59 +461,14 @@ const Jankenpo = ({
 
             // --- Desenho ---
             // Desenhar balas do jogador
-            playerBulletsRef.current.forEach(b => {
-                context.drawImage(loadedImages[b.type], b.x, b.y, b.width, b.height);
-                // Desenhar barra de HP abaixo do bullet
-                drawHPBar(context, b, 5);
-            });
+            playerBulletsRef.current.forEach(b => renderBullet(context, b, loadedImages, false, 5));
             
             // Desenhar balas inimigas rotacionadas
-            enemyBulletsRef.current.forEach(b => {
-                context.save(); // Salvar o estado atual
-                // Transladar para o centro da imagem
-                context.translate(b.x + b.width / 2, b.y + b.height / 2);
-                context.rotate(Math.PI); // Rotacionar 180 graus
-                // Desenhar a imagem, ajustando as coordenadas devido à translação
-                context.drawImage(loadedImages[b.type], -b.width / 2, -b.height / 2, b.width, b.height);
-                context.restore(); // Restaurar o estado
-                
-                // Desenhar barra de HP antes do bullet, ajustada para ficar 40px mais acima
-                drawHPBar(context, b, -63);
-            });
+            enemyBulletsRef.current.forEach(b => renderBullet(context, b, loadedImages, true, -63));
             
             // Explosões
-            const activeExplosions = [];
-            explosionsRef.current.forEach(exp => {
-                if (exp.anim < 9) { // 9 quadros para uma grade 3x3
-                    const frameWidth = loadedImages['explosao'].width / 3;
-                    const frameHeight = loadedImages['explosao'].height / 3;
-
-                    const frame = exp.anim;
-                    const sx = (frame % 3) * frameWidth;
-                    const sy = Math.floor(frame / 3) * frameHeight;
-
-                    context.drawImage(
-                        loadedImages['explosao'],
-                        sx, sy, frameWidth, frameHeight, // Retângulo de origem
-                        exp.x, exp.y, 50, 50              // Retângulo de destino
-                    );
-
-                    // Exibir texto de gold, se existir
-                    if (exp.goldText) {
-                        context.fillStyle = 'orange';
-                        context.font = 'bold 16px Arial';
-                        context.textAlign = 'center';
-                        context.fillText(exp.goldText, exp.x + 25, exp.y - 10); // Texto acima da explosão
-                    }
-
-                    exp.animCounter++;
-                    if (exp.animCounter >= exp.animDelay) {
-                        exp.anim++;
-                        exp.animCounter = 0;
-                    }
-                    activeExplosions.push(exp);
-                }
-            });
+            const activeExplosions = renderExplosions(context, explosionsRef.current, loadedImages);
+            
             if(activeExplosions.length !== explosionsRef.current.length) {
                 setExplosions(activeExplosions);
             }

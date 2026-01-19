@@ -3,21 +3,12 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Game from './Game';
 import Galery from './components/galery';
 import Shop from './components/shop';
+import { getEquippedBackground } from './utils/storageUtils';
 import './App.css';
 
 function App() {
   const [bgPos, setBgPos] = useState({ x: 50, y: 50 });
   
-  // Pega o fundo equipado do localStorage
-  const getEquippedBackground = () => {
-    const saved = localStorage.getItem('playerRegistry');
-    if (saved) {
-      const registry = JSON.parse(saved);
-      return registry.equippedBackground || '/assets/background/vila.gif';
-    }
-    return '/assets/background/vila.gif';
-  };
-
   const [equippedBackground, setEquippedBackground] = useState(getEquippedBackground());
 
   // Atualiza o fundo quando o localStorage mudar

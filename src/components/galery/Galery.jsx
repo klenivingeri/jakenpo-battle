@@ -1,53 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import backgrounds from '../../data/galery.json';
+import { getPlayerRegistry, savePlayerRegistry, purchaseBackground, equipBackground } from '../../utils/storageUtils';
 
 const Galery = () => {
   const navigate = useNavigate();
   const [selected, setSelected] = useState(null);
-  const [playerRegistry, setPlayerRegistry] = useState(() => {
-    const saved = localStorage.getItem('playerRegistry');
-    const defaultRegistry = {
-      gold: 0,
-      ownedBackgrounds: ['/assets/background/vila.gif'],
-      equippedBackground: '/assets/background/vila.gif'
-    };
-    
-    if (saved !== null) {
-      const parsed = JSON.parse(saved);
-      // Garante que as propriedades existam
-      return {
-        ...parsed,
-        ownedBackgrounds: parsed.ownedBackgrounds || ['/assets/background/vila.gif'],
-        equippedBackground: parsed.equippedBackground || '/assets/background/vila.gif'
-      };
-    }
-    
-    return defaultRegistry;
-  });
+  const [playerRegistry, setPlayerRegistry] = useState(() => getPlayerRegistry());
 
   // Salvar no localStorage quando mudar
   useEffect(() => {
-    localStorage.setItem('playerRegistry', JSON.stringify(playerRegistry));
+    savePlayerRegistry(playerRegistry);
     // Dispara evento para atualizar o App
     window.dispatchEvent(new Event('backgroundChanged'));
   }, [playerRegistry]);
 
   const handlePurchase = (bg) => {
-    if (playerRegistry.gold >= bg.price && !playerRegistry.ownedBackgrounds.includes(bg.path)) {
-      setPlayerRegistry(prev => ({
-        ...prev,
-        gold: prev.gold - bg.price,
-        ownedBackgrounds: [...prev.ownedBackgrounds, bg.path]
-      }));
+    const updated = purchaseBackground(bg.path, bg.price);
+    if (updated) {
+      setPlayerRegistry(updated);
     }
   };
 
   const handleEquip = (bgPath) => {
-    setPlayerRegistry(prev => ({
-      ...prev,
-      equippedBackground: bgPath
-    }));
+    const updated = equipBackground(bgPath);
+    setPlayerRegistry(updated);
   };
 
   const isOwned = (bgPath) => playerRegistry.ownedBackgrounds.includes(bgPath);
