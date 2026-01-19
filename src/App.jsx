@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Game from './Game';
+import InitPage from './pages/InitPage';
+import GamePage from './pages/GamePage';
+import ResultPage from './pages/ResultPage';
 import Galery from './components/galery';
 import Shop from './components/shop';
 import { getEquippedBackground } from './utils/storageUtils';
@@ -102,7 +105,9 @@ function App() {
         }}>
           <Routes>
             <Route path="/" element={<Game initialScene="Start" />} />
-            <Route path="/init" element={<Game initialScene="Init" />} />
+            <Route path="/init" element={<InitPage />} />
+            <Route path="/game" element={<GamePage />} />
+            <Route path="/result" element={<ResultPage />} />
             <Route path="/galeria" element={<Galery />} />
             <Route path="/loja" element={<Shop />} />
           </Routes>
