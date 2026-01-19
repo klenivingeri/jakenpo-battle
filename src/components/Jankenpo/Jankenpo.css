@@ -63,20 +63,39 @@
   /* Notificação lateral de nova fase */
   .phase-notification {
     position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: linear-gradient(135deg, rgba(142, 68, 173, 0.95) 0%, rgba(52, 152, 219, 0.95) 100%);
-    padding: 15px 20px;
+    left: 10px;
+    top: 50px;
+    background: linear-gradient(135deg, rgba(255, 0, 0, 0.95) 0%, rgba(255, 127, 0, 0.95) 50%, rgba(255, 255, 0, 0.95) 100%);
+    padding: 10px 15px;
     border-radius: 10px;
     border: 4px solid #000000;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
     z-index: 15;
-    animation: slideInRight 0.5s ease-out, fadeOutRight 0.5s ease-in 2.5s forwards;
+    animation: slideInLeft 0.5s ease-out, fadeOutLeft 0.5s ease-in 2.5s forwards;
     pointer-events: none;
   }
 
-  @keyframes slideInRight {
+  @keyframes slideInLeft {
+    0% {
+      transform: translateX(-150%);
+      opacity: 0;
+    }
+    100% {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes fadeOutLeft {
+    0% {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(-150%);
+      opacity: 0;
+    }
+  }
     0% {
       transform: translateY(-50%) translateX(150%);
       opacity: 0;

@@ -4,8 +4,10 @@ import Game from './Game';
 import InitPage from './pages/InitPage';
 import GamePage from './pages/GamePage';
 import GamePageInfinite from './pages/GamePageInfinite';
+import GamePageChaos from './pages/GamePageChaos';
 import ResultPage from './pages/ResultPage';
 import ResultPageInfinite from './pages/ResultPageInfinite';
+import ResultPageChaos from './pages/ResultPageChaos';
 import Galery from './components/galery';
 import Shop from './components/shop';
 import { getEquippedBackground } from './utils/storageUtils';
@@ -110,8 +112,10 @@ function App() {
             <Route path="/init" element={<InitPage />} />
             <Route path="/game" element={<GamePage />} />
             <Route path="/game-infinite" element={<GamePageInfinite />} />
+            <Route path="/game-chaos" element={<GamePageChaos />} />
             <Route path="/result" element={<ResultPage />} />
             <Route path="/result-infinite" element={<ResultPageInfinite />} />
+            <Route path="/result-chaos" element={<ResultPageChaos />} />
             <Route path="/galeria" element={<Galery />} />
             <Route path="/loja" element={<Shop />} />
           </Routes>

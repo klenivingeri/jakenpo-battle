@@ -296,28 +296,23 @@ export const InitScene = ({ rooms, setRoomCurrent, setActiveRoomIndex, setScene,
         </button>
         <button 
           className='button_footer botao-pulsar' 
-          onClick={() => navigate('/galeria')}
+          onClick={() => navigate('/game-chaos')}
           style={{
-            padding: '8px 12px',
+            padding: '8px 16px',
             minWidth: '44px',
             height: '44px',
-            fontSize: '1.3rem',
+            fontSize: '1.1rem',
+            background: 'linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3)',
+            border: '2px solid rgba(255, 255, 255, 0.4)',
+            fontWeight: 'bold',
+            boxShadow: '0 4px 15px rgba(255, 0, 0, 0.5)',
+            animation: 'pulseRainbow 2s infinite',
           }}
+          title="Modo Caos"
         >
-          🖼️
+          🌪️
         </button>
-        <button 
-          className='button_footer botao-pulsar' 
-          onClick={() => navigate('/loja')}
-          style={{
-            padding: '8px 12px',
-            minWidth: '44px',
-            height: '44px',
-            fontSize: '1.3rem',
-          }}
-        >
-          🛒
-        </button>
+        
       </div>
 
       {/* Main Content - Grid de Fases */}
