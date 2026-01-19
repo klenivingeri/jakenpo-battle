@@ -2,6 +2,7 @@ import { Header } from '../HUD/ControlEnemy'
 import { Footer } from '../HUD/Control'
 import Jankenpo from '../Jankenpo';
 import EconomyDebug from '../debug/EconomyDebug';
+import GameTutorial from '../shared/GameTutorial';
 import './GameScene.css'
 import { useEffect, useRef } from 'react';
 
@@ -43,6 +44,7 @@ export const GameScene = (props) => {
         )}
       </div>
       <Footer {...props}></Footer>
+      <GameTutorial />
     </div></>
   )
 }

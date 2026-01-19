@@ -19,6 +19,7 @@ import {
   saveToStorage,
   STORAGE_KEYS
 } from './utils/storageUtils';
+import GameTutorial from './components/shared/GameTutorial';
 
 function Game({ initialScene = 'Start' }) {
   const navigate = useNavigate();
@@ -240,7 +241,12 @@ function Game({ initialScene = 'Start' }) {
     ),
   };
   
-  return stateScene[scene];
+  return (
+    <>
+      {stateScene[scene]}
+      {scene === 'Start' && <GameTutorial />}
+    </>
+  );
 }
 
 export default Game

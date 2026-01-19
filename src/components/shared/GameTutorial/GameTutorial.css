@@ -1,0 +1,253 @@
+.game-tutorial {
+    position: fixed;
+    top: 20px; /* Ajuste para aproximar o modal do topo */
+    right: 20px;
+    width: 320px;
+    max-height: 80vh;
+    background: linear-gradient(135deg, rgba(30, 30, 50, 0.98) 0%, rgba(20, 20, 40, 0.98) 100%);
+    border: 2px solid rgba(100, 100, 255, 0.5);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    
+    display: block;
+}
+
+.game-tutorial.minimized {
+    width: 50px;
+    height: 50px; /* Garantir altura igual à largura */
+    max-height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center; /* Centraliza o texto dentro do botão */
+}
+
+.tutorial-header {
+    padding: 12px 16px;
+    background: linear-gradient(135deg, rgba(100, 100, 255, 0.3) 0%, rgba(150, 100, 255, 0.3) 100%);
+    border-bottom: 1px solid rgba(100, 100, 255, 0.3);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+    transition: background 0.2s;
+}
+
+.tutorial-header:hover {
+    background: linear-gradient(135deg, rgba(120, 120, 255, 0.4) 0%, rgba(170, 120, 255, 0.4) 100%);
+}
+
+.tutorial-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: #ffffff;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.minimized .tutorial-header h3 {
+    font-size: 1.5rem;
+}
+
+.minimize-btn {
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 4px;
+    transition: transform 0.2s;
+}
+
+.minimize-btn:hover {
+    transform: scale(1.2);
+}
+
+.minimized .minimize-btn {
+    display: none;
+}
+
+.tutorial-content {
+    padding: 16px;
+    overflow-y: auto;
+    max-height: calc(80vh - 60px);
+    color: #e0e0e0;
+    font-size: 0.9rem;
+}
+
+.tutorial-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.tutorial-content::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+.tutorial-content::-webkit-scrollbar-thumb {
+    background: rgba(100, 100, 255, 0.5);
+    border-radius: 4px;
+}
+
+.tutorial-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(120, 120, 255, 0.7);
+}
+
+.tutorial-section {
+    margin-bottom: 20px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border-left: 3px solid rgba(100, 100, 255, 0.5);
+}
+
+.tutorial-section h4 {
+    margin: 0 0 10px 0;
+    font-size: 1rem;
+    color: #a0d0ff;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.tutorial-section p {
+    margin: 0;
+    line-height: 1.5;
+    color: #d0d0d0;
+}
+
+.tutorial-section ul {
+    margin: 8px 0 0 0;
+    padding-left: 20px;
+    list-style: none;
+}
+
+.tutorial-section ul li {
+    margin-bottom: 8px;
+    line-height: 1.4;
+    position: relative;
+    padding-left: 8px;
+    color: #d0d0d0;
+}
+
+.tutorial-section ul li::before {
+    content: '▸';
+    position: absolute;
+    left: -12px;
+    color: rgba(100, 100, 255, 0.7);
+}
+
+.tutorial-section strong {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.rarity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.rarity-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+}
+
+.rarity-badge {
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.rarity-badge.common {
+    background: #9E9E9E;
+    color: #000000;
+}
+
+.rarity-badge.uncommon {
+    background: #4CAF50;
+    color: #000000;
+}
+
+.rarity-badge.rare {
+    background: #2196F3;
+    color: #ffffff;
+}
+
+.rarity-badge.heroic {
+    background: #9C27B0;
+    color: #ffffff;
+}
+
+.rarity-badge.legendary {
+    background: #FF9800;
+    color: #000000;
+}
+
+.rarity-badge.mythic {
+    background: #FF006E;
+    color: #ffffff;
+}
+
+.rarity-badge.immortal {
+    background: #FFD700;
+    color: #000000;
+}
+
+.tutorial-section.tips {
+    border-left-color: rgba(255, 215, 0, 0.7);
+    background: rgba(255, 215, 0, 0.1);
+}
+
+.tutorial-section.tips h4 {
+    color: #ffd700;
+}
+
+/* Animação de entrada */
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.game-tutorial {
+    animation: slideIn 0.3s ease-out;
+}
+
+/* Responsividade adicional para tablets */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .game-tutorial {
+        width: 280px;
+        font-size: 0.85rem;
+    }
+    
+    .tutorial-content {
+        font-size: 0.85rem;
+    }
+}
+
+/* Para telas muito grandes */
+@media (min-width: 1920px) {
+    .game-tutorial {
+        width: 380px;
+        font-size: 1rem;
+    }
+    
+    .tutorial-content {
+        font-size: 1rem;
+    }
+}
