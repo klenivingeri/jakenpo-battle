@@ -1,5 +1,6 @@
 import { BULLET_TYPES } from '../constants/gameConfig'
 import bulletAttributesData from '../data/bullet_attributes.json'
+import { calculateBulletGold } from './economyUtils'
 
 // Converte array em objeto para acesso mais rápido
 const bulletAttributes = bulletAttributesData.reduce((acc, attr) => {
@@ -57,8 +58,11 @@ export const selectBulletRarity = (dropConfig) => {
 }
 
 // Cria uma nova entidade de bala
-export const createBullet = (type, x, y, width, height, rarity = 'common') => {
+export const createBullet = (type, x, y, width, height, rarity = 'common', level = 1) => {
   const attributes = bulletAttributes[rarity]
+  
+  // Calcula gold baseado na raridade e nível da fase
+  const goldValue = calculateBulletGold(rarity, level)
   
   return {
     type,
@@ -75,7 +79,7 @@ export const createBullet = (type, x, y, width, height, rarity = 'common') => {
     maxHp: attributes.enemyHp,
     atk: attributes.enemyAtk,
     color: attributes.color,
-    gold: attributes.gold
+    gold: goldValue
   }
 }
 

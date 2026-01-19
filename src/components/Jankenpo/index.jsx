@@ -219,6 +219,7 @@ const Jankenpo = ({
     gameDuration = DEFAULT_GAME_CONFIG.GAME_DURATION, 
     speed = DEFAULT_GAME_CONFIG.BULLET_SPEED, 
     spawnInterval = DEFAULT_GAME_CONFIG.SPAWN_INTERVAL,
+    roomLevel = 1, // Nível da fase atual
     enemyDropConfig = {
         common: { drop: 100 },
         uncommon: { drop: 0 },
@@ -337,14 +338,15 @@ const Jankenpo = ({
                     0,
                     DEFAULT_GAME_CONFIG.BULLET_SIZE,
                     DEFAULT_GAME_CONFIG.BULLET_SIZE,
-                    rarity
+                    rarity,
+                    roomLevel // Passa o nível da fase para cálculo de gold
                 );
                 return [...prevBullets, newBullet];
             });
         }, spawnInterval);
 
         return () => clearInterval(enemyShootInterval);
-    }, [isGameOver, loadedImages, spawnInterval, enemyDropConfig]);
+    }, [isGameOver, loadedImages, spawnInterval, enemyDropConfig, roomLevel]);
 
     // Lógica de disparo do jogador
     useEffect(() => {

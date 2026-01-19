@@ -10,6 +10,7 @@ export const STORAGE_KEYS = {
   GAME_STATS: 'gameStats',
   ROOM_STARS: 'roomStars',
   IS_MUSIC_ON: 'isMusicOn',
+  IS_ECONOMY_DEBUG_ON: 'isEconomyDebugOn',
   ECONOMY_HISTORY: 'economyHistory'
 };
 
@@ -267,6 +268,22 @@ export const getIsMusicOn = () => {
  */
 export const setIsMusicOn = (isOn) => {
   saveToStorage(STORAGE_KEYS.IS_MUSIC_ON, isOn);
+};
+
+/**
+ * Obtém o estado do debug de economia
+ * @returns {boolean} Se o debug está ativado
+ */
+export const getIsEconomyDebugOn = () => {
+  return getFromStorage(STORAGE_KEYS.IS_ECONOMY_DEBUG_ON, false);
+};
+
+/**
+ * Salva o estado do debug de economia
+ * @param {boolean} isOn - Se o debug está ativado
+ */
+export const setIsEconomyDebugOn = (isOn) => {
+  saveToStorage(STORAGE_KEYS.IS_ECONOMY_DEBUG_ON, isOn);
 };
 
 /**

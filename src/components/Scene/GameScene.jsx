@@ -1,6 +1,7 @@
 import { Header } from '../HUD/ControlEnemy'
 import { Footer } from '../HUD/Control'
 import Jankenpo from '../Jankenpo';
+import EconomyDebug from '../debug/EconomyDebug';
 import './GameScene.css'
 import { useEffect, useRef } from 'react';
 
@@ -26,6 +27,14 @@ export const GameScene = (props) => {
           }}
         >
         </div>
+        {props.isEconomyDebugOn && (
+          <EconomyDebug 
+            roomLevel={props.roomLevel || 1}
+            enemyDropConfig={props.enemyDropConfig}
+            gameDuration={props.gameDuration}
+            spawnInterval={props.spawnInterval}
+          />
+        )}
       </div>
       <Footer {...props}></Footer>
     </div></>

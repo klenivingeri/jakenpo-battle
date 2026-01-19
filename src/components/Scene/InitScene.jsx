@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Modal from '../shared/Modal';
 import { PurchaseModal } from '../shared/PurchaseModal';
 import { Footer } from '../Footer';
-import { getEquippedSkills, getPlayerRegistry } from '../../utils/storageUtils';
+import { getEquippedSkills, getPlayerRegistry, getIsEconomyDebugOn, setIsEconomyDebugOn } from '../../utils/storageUtils';
 import './GameScene.css';
 
 
@@ -57,6 +57,7 @@ export const InitScene = ({ rooms, setRoomCurrent, setActiveRoomIndex, setScene,
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState(null);
+  const [isEconomyDebugOn, setIsEconomyDebugOnState] = useState(() => getIsEconomyDebugOn());
 
   // Estado local para as skills equipadas
   const [equippedSkills, setEquippedSkills] = useState(() => getEquippedSkills());
@@ -82,6 +83,19 @@ export const InitScene = ({ rooms, setRoomCurrent, setActiveRoomIndex, setScene,
       window.removeEventListener('backgroundChanged', handleSkillsChanged);
     };
   }, [setPlayerRegistry]);
+
+  // Sincronizar estado de economy debug com localStorage
+  useEffect(() => {
+    setIsEconomyDebugOn(isEconomyDebugOn);
+  }, [isEconomyDebugOn]);
+
+  // Wrapper para atualizar o estado e forçar re-render
+  const handleEconomyDebugChange = (value) => {
+    setIsEconomyDebugOnState(value);
+    setIsEconomyDebugOn(value);
+    // Força atualização da interface
+    window.dispatchEvent(new Event('economyDebugChanged'));
+  };
 
   // Função para lidar com a compra de uma fase
   const handlePurchase = (room) => {
@@ -352,6 +366,8 @@ export const InitScene = ({ rooms, setRoomCurrent, setActiveRoomIndex, setScene,
         setIsDarkMode={setIsDarkMode}
         isMusicOn={isMusicOn}
         setIsMusicOn={setIsMusicOn}
+        isEconomyDebugOn={isEconomyDebugOn}
+        setIsEconomyDebugOn={handleEconomyDebugChange}
       />
 
       {/* Modal de compra de fase */}

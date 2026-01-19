@@ -22,22 +22,84 @@ export const ECONOMY_CONFIG = {
   LINEAR_BONUS: 2,
   
   // Multiplicador de segurança (quantas rodadas mínimas)
-  MIN_RUNS_MULTIPLIER: 2.0
+  MIN_RUNS_MULTIPLIER: 2.0,
+  
+  // Fator de escalamento de gold por fase
+  GOLD_SCALE_FACTOR: 0.15,
+  GOLD_BASE_MULTIPLIER: 1.0
+}
+
+/**
+ * Calcula o multiplicador de gold baseado no nível da fase
+ * Gold aumenta gradualmente conforme avança nas fases
+ * 
+ * @param {number} level - Nível da fase (1-100)
+ * @returns {number} Multiplicador de gold
+ */
+export const calculateGoldMultiplier = (level) => {
+  const { GOLD_SCALE_FACTOR, GOLD_BASE_MULTIPLIER } = ECONOMY_CONFIG
+  
+  // Fórmula: 1.0 + (level - 1) * 0.15
+  // Fase 1: 1.0x
+  // Fase 10: 2.35x
+  // Fase 20: 3.85x
+  // Fase 50: 8.35x
+  // Fase 100: 15.85x
+  return GOLD_BASE_MULTIPLIER + ((level - 1) * GOLD_SCALE_FACTOR)
+}
+
+/**
+ * Calcula o gold que um bullet deve dar baseado na raridade e nível da fase
+ * 
+ * @param {string} rarity - Raridade do bullet (common, uncommon, rare, etc.)
+ * @param {number} level - Nível da fase atual
+ * @returns {number} Quantidade de gold
+ */
+export const calculateBulletGold = (rarity, level) => {
+  // Valores base por raridade
+  const baseGold = {
+    common: 1,
+    uncommon: 2,
+    rare: 3,
+    heroic: 4,
+    legendary: 5,
+    mythic: 6,
+    immortal: 7
+  }
+  
+  const base = baseGold[rarity] || 1
+  const multiplier = calculateGoldMultiplier(level)
+  
+  return Math.floor(base * multiplier)
 }
 
 /**
  * Calcula o custo para desbloquear uma fase
  * 
  * @param {number} level - Nível da fase (1-100)
+ * @param {object} currentLevelConfig - Configuração da fase ATUAL (não a anterior)
  * @returns {number} Custo em gold para desbloquear
  * 
- * Fórmula: unlockCost = baseMultiplier × level^exponent + linearBonus × level
+ * O custo para desbloquear a PRÓXIMA fase é baseado no gold que você ganha na fase ATUAL
  */
-export const calculateUnlockCost = (level) => {
-  const { BASE_MULTIPLIER, EXPONENT, LINEAR_BONUS } = ECONOMY_CONFIG
-  
+export const calculateUnlockCost = (level, currentLevelConfig = null) => {
   if (level === 1) return 0 // Primeira fase sempre desbloqueada
   
+  // Se temos configuração da fase ATUAL, calcula baseado no gold esperado dela
+  if (currentLevelConfig) {
+    const expectedGold = calculateExpectedGold(
+      currentLevelConfig.enemy,
+      level,
+      currentLevelConfig.gameDuration,
+      currentLevelConfig.spawnInterval
+    )
+    
+    // Custo = gold esperado da fase atual * MIN_RUNS_MULTIPLIER (2x por padrão)
+    return Math.floor(expectedGold * ECONOMY_CONFIG.MIN_RUNS_MULTIPLIER)
+  }
+  
+  // Fallback para cálculo simples se não tiver configuração
+  const { BASE_MULTIPLIER, EXPONENT, LINEAR_BONUS } = ECONOMY_CONFIG
   const exponentialPart = BASE_MULTIPLIER * Math.pow(level, EXPONENT)
   const linearPart = LINEAR_BONUS * level
   
@@ -49,30 +111,21 @@ export const calculateUnlockCost = (level) => {
  * Baseado nas chances de raridade e número médio de inimigos
  * 
  * @param {object} dropConfig - Configuração de drops da fase
+ * @param {number} level - Nível da fase
  * @param {number} gameDuration - Duração da fase em segundos
  * @param {number} spawnInterval - Intervalo de spawn em ms
  * @returns {number} Gold médio esperado
  */
-export const calculateExpectedGold = (dropConfig, gameDuration = 30, spawnInterval = 2000) => {
-  // Gold por raridade (deve coincidir com bullet_attributes.json)
-  const goldByRarity = {
-    common: 1,
-    uncommon: 2,
-    rare: 3,
-    heroic: 4,
-    legendary: 5,
-    mythic: 6,
-    immortal: 7
-  }
-  
+export const calculateExpectedGold = (dropConfig, level, gameDuration = 30, spawnInterval = 2000) => {
   // Número médio de inimigos por fase
   const averageEnemies = Math.floor((gameDuration * 1000) / spawnInterval)
   
-  // Calcula gold médio ponderado
+  // Calcula gold médio ponderado usando o novo sistema escalado
   let weightedGold = 0
-  Object.keys(goldByRarity).forEach(rarity => {
+  Object.keys(dropConfig).forEach(rarity => {
     const dropChance = (dropConfig[rarity]?.drop || 0) / 100
-    weightedGold += dropChance * goldByRarity[rarity]
+    const goldValue = calculateBulletGold(rarity, level)
+    weightedGold += dropChance * goldValue
   })
   
   return Math.floor(weightedGold * averageEnemies)
@@ -101,14 +154,15 @@ export const canUnlockRoom = (playerGold, level) => {
  */
 export const getProgressionStats = (level, dropConfig, gameDuration, spawnInterval) => {
   const unlockCost = calculateUnlockCost(level)
-  const expectedGold = calculateExpectedGold(dropConfig, gameDuration, spawnInterval)
-  const runsNeeded = Math.ceil(unlockCost / expectedGold)
+  const expectedGold = calculateExpectedGold(dropConfig, level, gameDuration, spawnInterval)
+  const runsNeeded = expectedGold > 0 ? Math.ceil(unlockCost / expectedGold) : 0
   
   return {
     level,
     unlockCost,
     expectedGold,
     runsNeeded,
+    goldMultiplier: calculateGoldMultiplier(level).toFixed(2) + 'x',
     efficiency: (runsNeeded / ECONOMY_CONFIG.MIN_RUNS_MULTIPLIER * 100).toFixed(1) + '%'
   }
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Modal = ({ isOpen, onClose, isDarkMode, setIsDarkMode, isMusicOn, setIsMusicOn }) => {
+const Modal = ({ isOpen, onClose, isDarkMode, setIsDarkMode, isMusicOn, setIsMusicOn, isEconomyDebugOn, setIsEconomyDebugOn }) => {
   if (!isOpen) return null;
 
   return (
@@ -148,6 +148,38 @@ const Modal = ({ isOpen, onClose, isDarkMode, setIsDarkMode, isMusicOn, setIsMus
               MÚSICA
             </label>
           </div>
+
+          {/* Economy Debug */}
+          {isEconomyDebugOn !== undefined && (
+            <div style={{
+              marginBottom: '16px',
+              padding: '12px',
+              background: '#E0E0E0',
+              border: '4px solid #000000',
+            }}>
+              <label style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                fontWeight: 'bold',
+              }}>
+                <input
+                  type="checkbox"
+                  checked={isEconomyDebugOn}
+                  onChange={(e) => setIsEconomyDebugOn(e.target.checked)}
+                  style={{
+                    width: '24px',
+                    height: '24px',
+                    cursor: 'pointer',
+                    accentColor: '#00BFFF',
+                  }}
+                />
+                💰 DEBUG ECONOMIA
+              </label>
+            </div>
+          )}
 
           {/* Botão Fechar */}
           <button

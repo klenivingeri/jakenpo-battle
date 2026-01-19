@@ -11,6 +11,7 @@ import {
   getPlayerRegistry,
   getIsMusicOn,
   setIsMusicOn,
+  getIsEconomyDebugOn,
   getRoomCurrent,
   getGameStats,
   getRoomStars,
@@ -25,6 +26,7 @@ function Game({ initialScene = 'Start' }) {
   const [disableButtonPlayer, setdisableButtonPlayer] = useState(false);
   const [scene, setScene] = useState(initialScene);
   const [isMusicOn, setIsMusicOnState] = useState(() => getIsMusicOn());
+  const [isEconomyDebugOn, setIsEconomyDebugOnState] = useState(() => getIsEconomyDebugOn());
 
   // Sincroniza o estado da cena quando a prop initialScene mudar
   useEffect(() => {
@@ -64,6 +66,24 @@ function Game({ initialScene = 'Start' }) {
     setIsMusicOn(isMusicOn);
   }, [isMusicOn]);
 
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setIsEconomyDebugOnState(getIsEconomyDebugOn());
+    };
+    
+    const handleEconomyDebugChanged = () => {
+      setIsEconomyDebugOnState(getIsEconomyDebugOn());
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('economyDebugChanged', handleEconomyDebugChanged);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('economyDebugChanged', handleEconomyDebugChanged);
+    };
+  }, []);
+
   const handleInit = () => {
     navigate('/init');
   }
@@ -95,8 +115,15 @@ function Game({ initialScene = 'Start' }) {
     // Normalizar para somar 100
     const total = commonDrop + uncommonDrop + rareDrop + heroicDrop + legendaryDrop + mythicDrop + immortalDrop;
     
-    // Calcula o custo para desbloquear esta fase
-    const unlockCost = calculateUnlockCost(level);
+    const enemyConfig = {
+      common: { drop: (commonDrop / total) * 100 },
+      uncommon: { drop: (uncommonDrop / total) * 100 },
+      rare: { drop: (rareDrop / total) * 100 },
+      heroic: { drop: (heroicDrop / total) * 100 },
+      legendary: { drop: (legendaryDrop / total) * 100 },
+      mythic: { drop: (mythicDrop / total) * 100 },
+      immortal: { drop: (immortalDrop / total) * 100 }
+    };
     
     return {
       id: level,
@@ -105,18 +132,19 @@ function Game({ initialScene = 'Start' }) {
       spawnInterval: baseSpawnInterval,
       bulletsPerAction: 1,
       disableButton: i > roomCurrent,
-      unlockCost, // Custo para desbloquear a próxima fase
-      enemy: {
-        common: { drop: (commonDrop / total) * 100 },
-        uncommon: { drop: (uncommonDrop / total) * 100 },
-        rare: { drop: (rareDrop / total) * 100 },
-        heroic: { drop: (heroicDrop / total) * 100 },
-        legendary: { drop: (legendaryDrop / total) * 100 },
-        mythic: { drop: (mythicDrop / total) * 100 },
-        immortal: { drop: (immortalDrop / total) * 100 }
-      }
+      enemy: enemyConfig
     };
   }), [roomCurrent]);
+  
+  // Calcula unlock costs baseado na fase ATUAL
+  const roomsWithCosts = useMemo(() => {
+    return rooms.map((room) => {
+      // O custo é baseado no gold da FASE ATUAL
+      // Jogando a fase X duas vezes, você desbloqueia a fase X+1
+      const unlockCost = calculateUnlockCost(room.id, room);
+      return { ...room, unlockCost };
+    });
+  }, [rooms]);
 
   const handleBullet = (type, shooter) => {
     if (shooter === 'player') {
@@ -168,7 +196,7 @@ function Game({ initialScene = 'Start' }) {
     setScene('Game');
   };
 
-  const currentRoom = rooms[activeRoomIndex];
+  const currentRoom = roomsWithCosts[activeRoomIndex];
 
   const stateScene = {
     Start: (
@@ -196,7 +224,7 @@ function Game({ initialScene = 'Start' }) {
     Init: (
       <InitScene 
         setScene={setScene} 
-        rooms={rooms} 
+        rooms={roomsWithCosts} 
         setRoomCurrent={setRoomCurrent}
         setActiveRoomIndex={setActiveRoomIndex}
         roomCurrent={roomCurrent}
@@ -222,7 +250,9 @@ function Game({ initialScene = 'Start' }) {
         speed={currentRoom.speed}
         spawnInterval={currentRoom.spawnInterval}
         bulletsPerSpawn={currentRoom.bulletsPerAction}
+        roomLevel={currentRoom.id}
         enemyDropConfig={currentRoom.enemy}
+        isEconomyDebugOn={isEconomyDebugOn}
       />
     ),
     EndResult: (

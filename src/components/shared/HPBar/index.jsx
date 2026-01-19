@@ -5,7 +5,7 @@ export const HPBar = ({ hp, maxHp = 10, showValue = false, hpClassName = '', gho
   return (
     <>
       <div className={hpClassName} style={{ width: `${percentage}%` }}>
-        {showValue && Math.round(percentage)}
+       
       </div>
       <div className={ghostClassName}></div>
     </>
