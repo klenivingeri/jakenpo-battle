@@ -279,6 +279,23 @@ export const InitScene = ({ rooms, setRoomCurrent, setActiveRoomIndex, setScene,
         {/* Botões de Navegação */}
         <button 
           className='button_footer botao-pulsar' 
+          onClick={() => navigate('/game-infinite')}
+          style={{
+            padding: '8px 16px',
+            minWidth: '44px',
+            height: '44px',
+            fontSize: '1.1rem',
+            background: 'linear-gradient(45deg, #8e44ad, #3498db)',
+            border: '2px solid rgba(255, 255, 255, 0.4)',
+            fontWeight: 'bold',
+            boxShadow: '0 4px 15px rgba(142, 68, 173, 0.4)',
+          }}
+          title="Modo Infinito"
+        >
+          ♾️
+        </button>
+        <button 
+          className='button_footer botao-pulsar' 
           onClick={() => navigate('/galeria')}
           style={{
             padding: '8px 12px',

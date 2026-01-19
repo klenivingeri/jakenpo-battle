@@ -3,7 +3,9 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Game from './Game';
 import InitPage from './pages/InitPage';
 import GamePage from './pages/GamePage';
+import GamePageInfinite from './pages/GamePageInfinite';
 import ResultPage from './pages/ResultPage';
+import ResultPageInfinite from './pages/ResultPageInfinite';
 import Galery from './components/galery';
 import Shop from './components/shop';
 import { getEquippedBackground } from './utils/storageUtils';
@@ -107,7 +109,9 @@ function App() {
             <Route path="/" element={<Game initialScene="Start" />} />
             <Route path="/init" element={<InitPage />} />
             <Route path="/game" element={<GamePage />} />
+            <Route path="/game-infinite" element={<GamePageInfinite />} />
             <Route path="/result" element={<ResultPage />} />
+            <Route path="/result-infinite" element={<ResultPageInfinite />} />
             <Route path="/galeria" element={<Galery />} />
             <Route path="/loja" element={<Shop />} />
           </Routes>

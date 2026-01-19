@@ -9,7 +9,13 @@ export const GameScene = (props) => {
   return (
    <>
     <div className='container_game_scene' >
-      <Header {...props}></Header>
+      <Header 
+        enemy={props.enemy}
+        isInfiniteMode={props.isInfiniteMode}
+        currentPhase={props.currentPhase}
+        totalTime={props.totalTime}
+        timeLeft={props.timeLeft}
+      />
       <div style={{ flex: 1, overflowY: 'auto', position: 'relative' }}>
         <Jankenpo {...props} />
         <div

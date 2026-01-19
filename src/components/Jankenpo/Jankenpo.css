@@ -11,4 +11,90 @@
     width: 100%;
     height: 100%;
   }
+
+  /* Efeito de level up - degradê subindo */
+  .level-up-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+    animation: levelUpSlide 1.5s ease-out forwards;
+  }
+
+  @keyframes levelUpSlide {
+    0% {
+      transform: translateY(100%);
+      opacity: 0.8;
+    }
+    50% {
+      opacity: 0.6;
+    }
+    100% {
+      transform: translateY(-100%);
+      opacity: 0;
+    }
+  }
+
+  /* Efeito de flash no fundo */
+  .phase-transition-flash {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9;
+    background: rgba(255, 255, 255, 0.3);
+    animation: flashEffect 0.5s ease-out;
+  }
+
+  @keyframes flashEffect {
+    0% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
+  /* Notificação lateral de nova fase */
+  .phase-notification {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: linear-gradient(135deg, rgba(142, 68, 173, 0.95) 0%, rgba(52, 152, 219, 0.95) 100%);
+    padding: 15px 20px;
+    border-radius: 10px;
+    border: 4px solid #000000;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+    z-index: 15;
+    animation: slideInRight 0.5s ease-out, fadeOutRight 0.5s ease-in 2.5s forwards;
+    pointer-events: none;
+  }
+
+  @keyframes slideInRight {
+    0% {
+      transform: translateY(-50%) translateX(150%);
+      opacity: 0;
+    }
+    100% {
+      transform: translateY(-50%) translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes fadeOutRight {
+    0% {
+      transform: translateY(-50%) translateX(0);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(-50%) translateX(150%);
+      opacity: 0;
+    }
+  }
   

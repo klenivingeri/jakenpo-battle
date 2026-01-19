@@ -222,11 +222,17 @@ const Jankenpo = ({
     setEnemy, 
     setdisableButtonPlayer, 
     setScene, 
-    handleGameEnd, 
+    handleGameEnd,
+    handlePhaseComplete, // Nova prop para modo infinito
     gameDuration = DEFAULT_GAME_CONFIG.GAME_DURATION, 
     speed = DEFAULT_GAME_CONFIG.BULLET_SPEED, 
     spawnInterval = DEFAULT_GAME_CONFIG.SPAWN_INTERVAL,
     roomLevel = 1, // Nível da fase atual
+    isInfiniteMode = false, // Nova prop para indicar modo infinito
+    currentPhase = 1, // Número da fase atual (modo infinito)
+    totalTime = 0, // Tempo total acumulado (modo infinito)
+    timeLeft: externalTimeLeft, // TimeLeft externo (modo infinito)
+    setTimeLeft: externalSetTimeLeft, // Setter externo (modo infinito)
     enemyDropConfig = {
         common: { drop: 100 },
         uncommon: { drop: 0 },
@@ -244,34 +250,64 @@ const Jankenpo = ({
     const [explosions, setExplosions] = useState([]);
     const [particles, setParticles] = useState([]);
     const [stats, setStats] = useState({ wins: 0, losses: 0, draws: 0 });
-    const [timeLeft, setTimeLeft] = useState(gameDuration);
+    const [internalTimeLeft, setInternalTimeLeft] = useState(gameDuration);
+    // Usa timeLeft externo se fornecido (modo infinito), senão usa o interno
+    const timeLeft = isInfiniteMode && externalTimeLeft !== undefined ? externalTimeLeft : internalTimeLeft;
+    const setTimeLeft = isInfiniteMode && externalSetTimeLeft ? externalSetTimeLeft : setInternalTimeLeft;
     const [loadedImages, setLoadedImages] = useState(null);
     const [isGameOver, setIsGameOver] = useState(false);
     const [gold, setGold] = useState(0); // Estado para armazenar o gold acumulado
     const [isInitialized, setIsInitialized] = useState(false); // Flag para indicar inicialização
     const explosionAudioRef = useRef(new Audio(explosionSoundSrc));
     const { vibrateHit, vibrateDamage } = useVibration();
+    const [showLevelUp, setShowLevelUp] = useState(false); // Efeito de level up
+    const previousPhaseRef = useRef(currentPhase); // Ref para detectar mudança de fase
+    const [showPhaseNotification, setShowPhaseNotification] = useState(false); // Notificação lateral
 
     // Reset completo quando a room muda (gameDuration e roomLevel são identificadores da room)
     useEffect(() => {
-        // Resetar todos os estados para valores iniciais
-        setEnemyBullets([]);
-        setPlayerBullets([]);
-        setExplosions([]);
-        setParticles([]);
-        setStats({ wins: 0, losses: 0, draws: 0 });
-        setTimeLeft(gameDuration);
-        setIsGameOver(false);
-        setGold(0);
-        setIsInitialized(false); // Marca como não inicializado durante o reset
+        // No modo infinito, detecta mudança de fase e mostra efeito visual
+        if (isInfiniteMode && previousPhaseRef.current !== currentPhase && previousPhaseRef.current !== undefined) {
+            // Vibração de feedback
+            if (navigator.vibrate) {
+                navigator.vibrate([50, 30, 50, 30, 50]);
+            }
+
+            // Mostra notificação lateral
+            setShowPhaseNotification(true);
+            setTimeout(() => {
+                setShowPhaseNotification(false);
+            }, 3000);
+        }
         
-        // Garantir que o HP do player e enemy estejam resetados
-        setPlayer({ hp: 10, atk: 1 });
-        setEnemy({ hp: 10, atk: 1 });
+        previousPhaseRef.current = currentPhase;
         
-        // Após um pequeno delay, marca como inicializado
-        setTimeout(() => setIsInitialized(true), 50);
-    }, [gameDuration, roomLevel, setPlayer, setEnemy]); // Reage às mudanças de room
+        // No modo infinito, não reseta nada, apenas atualiza o timer
+        if (isInfiniteMode) {
+            setTimeLeft(gameDuration);
+            setIsGameOver(false);
+            if (!isInitialized) {
+                setTimeout(() => setIsInitialized(true), 50);
+            }
+        } else {
+            // Modo normal: resetar todos os estados para valores iniciais
+            setEnemyBullets([]);
+            setPlayerBullets([]);
+            setExplosions([]);
+            setParticles([]);
+            setStats({ wins: 0, losses: 0, draws: 0 });
+            setTimeLeft(gameDuration);
+            setIsGameOver(false);
+            setGold(0);
+            setIsInitialized(false);
+            
+            // Garantir que o HP do player e enemy estejam resetados
+            setPlayer({ hp: 10, atk: 1 });
+            setEnemy({ hp: 10, atk: 1 });
+            
+            setTimeout(() => setIsInitialized(true), 50);
+        }
+    }, [gameDuration, roomLevel, setPlayer, setEnemy, isInfiniteMode, isInitialized]); // Reage às mudanças de room
 
     // Redimensionamento do Canvas
     useEffect(() => {
@@ -330,15 +366,38 @@ const Jankenpo = ({
         // Não verifica fim de jogo até estar inicializado
         if (isGameOver || !isInitialized) return;
 
-        if (player.hp <= 0 || timeLeft <= 0) {
-            setIsGameOver(true);
-            const finalResult = player.hp > 0 ? 'win' : 'loss';
-            handleGameEnd({ ...stats, result: finalResult, gold });
-        } else if (enemy.hp <= 0) {
-            setIsGameOver(true);
-            handleGameEnd({ ...stats, result: 'win', gold });
+        // No modo infinito, só termina se o player morrer
+        if (isInfiniteMode) {
+            if (player.hp <= 0) {
+                setIsGameOver(true);
+                handleGameEnd({ 
+                    ...stats, 
+                    result: 'loss', 
+                    gold,
+                    phasesCompleted: currentPhase,
+                    totalTime: totalTime + (gameDuration - timeLeft)
+                });
+            } else if (timeLeft <= 0) {
+                // Fase completada, passar para próxima
+                if (handlePhaseComplete) {
+                    handlePhaseComplete();
+                }
+            } else if (enemy.hp <= 0) {
+                // No modo infinito, se o enemy morrer antes do tempo, continua a fase
+                setEnemy({ hp: 10, atk: 1 });
+            }
+        } else {
+            // Modo normal
+            if (player.hp <= 0 || timeLeft <= 0) {
+                setIsGameOver(true);
+                const finalResult = player.hp > 0 ? 'win' : 'loss';
+                handleGameEnd({ ...stats, result: finalResult, gold });
+            } else if (enemy.hp <= 0) {
+                setIsGameOver(true);
+                handleGameEnd({ ...stats, result: 'win', gold });
+            }
         }
-    }, [player.hp, enemy.hp, timeLeft, isGameOver, handleGameEnd, stats, gold, isInitialized]);
+    }, [player.hp, enemy.hp, timeLeft, isGameOver, handleGameEnd, handlePhaseComplete, stats, gold, isInitialized, isInfiniteMode, gameDuration, setEnemy, currentPhase, totalTime]);
 
 
     // Temporizador do jogo
@@ -524,6 +583,30 @@ const Jankenpo = ({
             />
             <canvas ref={canvasRef} />
             
+            {/* Notificação lateral de nova fase */}
+            {showPhaseNotification && (
+                <div className="phase-notification">
+                    <div style={{
+                        fontSize: '0.85rem',
+                        fontWeight: 'bold',
+                        color: '#ffffff',
+                        textShadow: '2px 2px 0 #000000',
+                        marginBottom: '5px',
+                        textAlign: 'center',
+                    }}>
+                        NOVA FASE
+                    </div>
+                    <div style={{
+                        fontSize: '1.8rem',
+                        fontWeight: 'bold',
+                        color: '#ffffff',
+                        textShadow: '3px 3px 0 #000000',
+                        textAlign: 'center',
+                    }}>
+                        {currentPhase}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
