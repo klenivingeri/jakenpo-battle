@@ -314,6 +314,20 @@ export const InitScene = ({ rooms, setRoomCurrent, setActiveRoomIndex, setScene,
         >
           🌪️
         </button>
+        <button 
+          className='button_footer botao-pulsar' 
+          onClick={() => navigate('/loja')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minWidth: '44px',
+            height: '44px',
+            fontSize: '1.3rem',
+          }}
+        >
+          🛒
+        </button>
         
       </div>
 
