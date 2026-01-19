@@ -50,9 +50,6 @@ function GamePageInfinite() {
 
   // Função chamada quando uma fase é completada (tempo acabou mas player ainda vivo)
   const handlePhaseComplete = () => {
-    // Incrementa tempo total
-    setTotalTime(prev => prev + currentRoom.gameDuration);
-
     // Avança para próxima fase
     const nextPhase = currentPhase + 1;
     
@@ -61,7 +58,7 @@ function GamePageInfinite() {
       handleGameEnd({
         result: 'win',
         phasesCompleted: currentPhase + 1,
-        totalTime: totalTime + currentRoom.gameDuration
+        totalTime: totalTime
       });
     } else {
       setCurrentPhase(nextPhase);

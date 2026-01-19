@@ -52,8 +52,6 @@ function GamePageChaos() {
 
   // Função chamada quando uma fase é completada
   const handlePhaseComplete = () => {
-    setTotalTime(prev => prev + currentRoom.gameDuration);
-
     const nextPhase = currentPhase + 1;
     
     if (nextPhase >= rooms.length) {
@@ -61,7 +59,7 @@ function GamePageChaos() {
       handleGameEnd({
         result: 'win',
         phasesCompleted: currentPhase + 1,
-        totalTime: totalTime + currentRoom.gameDuration
+        totalTime: totalTime
       });
     } else {
       setCurrentPhase(nextPhase);

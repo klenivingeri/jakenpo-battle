@@ -262,6 +262,7 @@ const Jankenpo = ({
     const explosionAudioRef = useRef(new Audio(explosionSoundSrc));
     const { vibrateHit, vibrateDamage } = useVibration();
     const [showLevelUp, setShowLevelUp] = useState(false); // Efeito de level up
+    const [levelUpProgress, setLevelUpProgress] = useState(0); // Progresso do degradê
     const previousPhaseRef = useRef(currentPhase); // Ref para detectar mudança de fase
     const [showPhaseNotification, setShowPhaseNotification] = useState(false); // Notificação lateral
 
@@ -273,6 +274,26 @@ const Jankenpo = ({
             if (navigator.vibrate) {
                 navigator.vibrate([50, 30, 50, 30, 50]);
             }
+
+            // Ativa o efeito de degradê subindo
+            setShowLevelUp(true);
+            setLevelUpProgress(0);
+            
+            // Anima o degradê subindo
+            const duration = 2000; // 2 segundos para atravessar toda a tela
+            const startTime = Date.now();
+            const animateGradient = () => {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                setLevelUpProgress(progress);
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animateGradient);
+                } else {
+                    setShowLevelUp(false);
+                }
+            };
+            requestAnimationFrame(animateGradient);
 
             // Mostra notificação lateral
             setShowPhaseNotification(true);
@@ -606,13 +627,54 @@ const Jankenpo = ({
                 setExplosions(activeExplosions);
             }
 
+            // --- Efeito de Level Up (degradê subindo) ---
+            if (showLevelUp) {
+                // O retângulo atravessa toda a tela - altura = tamanho da tela, percorre 2x para sair completamente
+                const rectHeight = canvas.height; // Retângulo do tamanho da tela
+                const yPosition = canvas.height - (levelUpProgress * canvas.height * 2); // Sobe 2x a altura para sair completamente
+                
+                const gradient = context.createLinearGradient(0, yPosition, 0, yPosition + rectHeight);
+                
+                // Cores do degradê (dourado/amarelo brilhante)
+                gradient.addColorStop(0, 'rgba(255, 215, 0, 0.8)');
+                gradient.addColorStop(0.3, 'rgba(255, 255, 0, 0.6)');
+                gradient.addColorStop(0.6, 'rgba(255, 165, 0, 0.4)');
+                gradient.addColorStop(1, 'rgba(255, 215, 0, 0)');
+                
+                context.fillStyle = gradient;
+                context.fillRect(0, yPosition, canvas.width, rectHeight);
+                
+                // Texto de "NOVA FASE" aparecendo enquanto o retângulo atravessa
+                if (levelUpProgress > 0.15 && levelUpProgress < 0.75) {
+                    const textAlpha = levelUpProgress < 0.35 
+                        ? (levelUpProgress - 0.15) / 0.2  // Fade in
+                        : levelUpProgress > 0.6 
+                            ? (0.75 - levelUpProgress) / 0.15  // Fade out
+                            : 1; // Totalmente visível no meio
+                    
+                    context.save();
+                    context.globalAlpha = textAlpha;
+                    context.fillStyle = 'white';
+                    context.strokeStyle = 'rgba(255, 215, 0, 1)';
+                    context.lineWidth = 4;
+                    context.font = 'bold 48px Arial';
+                    context.textAlign = 'center';
+                    context.textBaseline = 'middle';
+                    
+                    const text = 'NOVA FASE!';
+                    context.strokeText(text, canvas.width / 2, canvas.height / 2);
+                    context.fillText(text, canvas.width / 2, canvas.height / 2);
+                    context.restore();
+                }
+            }
+
             animationFrameId = requestAnimationFrame(update);
         };
 
         animationFrameId = requestAnimationFrame(update);
 
         return () => cancelAnimationFrame(animationFrameId);
-    }, [loadedImages, isGameOver, setPlayer, setEnemy, speed, vibrateHit, vibrateDamage]);
+    }, [loadedImages, isGameOver, setPlayer, setEnemy, speed, vibrateHit, vibrateDamage, showLevelUp, levelUpProgress]);
 
     return (
         <div ref={containerRef} className="canvas-container">
