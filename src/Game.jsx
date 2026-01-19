@@ -7,6 +7,7 @@ import { InitScene } from './components/Scene/InitScene';
 import { ResultScene } from './components/Scene/ResultScene';
 import { toggleFullScreen } from './help/fullScreen';
 import { calculateUnlockCost } from './utils/economyUtils';
+import { generateRooms } from './utils/roomUtils';
 import {
   getPlayerRegistry,
   getIsMusicOn,
@@ -87,54 +88,19 @@ function Game({ initialScene = 'Start' }) {
   const handleInit = () => {
     navigate('/init');
   }
+  
+  const handleSetScene = (sceneName, roomIndexOverride) => {
+    if (sceneName === 'Game') {
+      // Navega para a página de jogo passando o índice da room
+      // Use o roomIndexOverride se fornecido, caso contrário use activeRoomIndex
+      const indexToUse = roomIndexOverride !== undefined ? roomIndexOverride : activeRoomIndex;
+      navigate('/game', { state: { roomIndex: indexToUse } });
+    } else {
+      setScene(sceneName);
+    }
+  };
 
-  const rooms = useMemo(() => Array.from({ length: 100 }, (_, i) => {
-    const level = i + 1;
-
-    // Reseta a curva de velocidade/spawn a cada 30 níveis
-    const resetIndex = i % 30;
-
-    // Velocidade: sobe de 2.0 a 7.6 dentro de cada bloco de 30 níveis
-    const baseSpeed = 2 + (Math.floor(resetIndex / 2) * 0.40);
-
-    // Spawn: fica mais rápido até o meio de cada bloco
-    const baseSpawnInterval = Math.max(600, 3000 - (Math.min(resetIndex, 20) * 100));
-
-    // Sistema de drops de raridade baseado no nível
-    // Conforme sobe o nível, aumenta a chance de bullets raros
-    const progressFactor = Math.min(i / 99, 1); // 0 a 1
-    
-    const commonDrop = Math.max(10, 100 - (progressFactor * 60)); // 100 -> 40
-    const uncommonDrop = Math.min(30, progressFactor * 30); // 0 -> 30
-    const rareDrop = Math.min(20, progressFactor * 20); // 0 -> 20
-    const heroicDrop = Math.min(15, progressFactor * 15); // 0 -> 15
-    const legendaryDrop = Math.min(10, progressFactor * 10); // 0 -> 10
-    const mythicDrop = Math.min(8, progressFactor * 8); // 0 -> 8
-    const immortalDrop = Math.min(7, progressFactor * 7); // 0 -> 7
-    
-    // Normalizar para somar 100
-    const total = commonDrop + uncommonDrop + rareDrop + heroicDrop + legendaryDrop + mythicDrop + immortalDrop;
-    
-    const enemyConfig = {
-      common: { drop: (commonDrop / total) * 100 },
-      uncommon: { drop: (uncommonDrop / total) * 100 },
-      rare: { drop: (rareDrop / total) * 100 },
-      heroic: { drop: (heroicDrop / total) * 100 },
-      legendary: { drop: (legendaryDrop / total) * 100 },
-      mythic: { drop: (mythicDrop / total) * 100 },
-      immortal: { drop: (immortalDrop / total) * 100 }
-    };
-    
-    return {
-      id: level,
-      gameDuration: 30 + resetIndex,
-      speed: baseSpeed,
-      spawnInterval: baseSpawnInterval,
-      bulletsPerAction: 1,
-      disableButton: i > roomCurrent,
-      enemy: enemyConfig
-    };
-  }), [roomCurrent]);
+  const rooms = useMemo(() => generateRooms(roomCurrent), [roomCurrent]);
   
   // Calcula unlock costs baseado na fase ATUAL
   const roomsWithCosts = useMemo(() => {
@@ -153,15 +119,30 @@ function Game({ initialScene = 'Start' }) {
   };
 
   const handleGameEnd = (stats) => {
+    console.log('🏁 handleGameEnd chamado:', { stats, playerHP: player.hp, activeRoomIndex });
+    
     let stars = 0;
     if (stats.result === 'win') {
       stars = player.hp >= 10 ? 3 : player.hp >= 5 ? 2 : 1;
+      console.log('⭐ Calculando estrelas:', { playerHP: player.hp, stars });
+      
       const newStars = [...roomStars];
+      const oldStars = newStars[activeRoomIndex] || 0;
+      
+      console.log('⭐ Comparando estrelas:', { oldStars, newStars: stars, willUpdate: stars > oldStars });
+      
       if (stars > newStars[activeRoomIndex]) {
         newStars[activeRoomIndex] = stars;
         setRoomStars(newStars);
+        // Salva imediatamente no localStorage
+        saveToStorage(STORAGE_KEYS.ROOM_STARS, newStars);
+        console.log('⭐ Estrelas salvas:', { activeRoomIndex, stars, allStars: newStars });
+      } else {
+        console.log('⭐ Estrelas não atualizadas (já tinha melhor ou igual)');
       }
       // Removido o auto-desbloqueio - agora só desbloqueia comprando com gold
+    } else {
+      console.log('❌ Não foi vitória, resultado:', stats.result);
     }
     
     // Atualizar registry do player com gold e xp ganhos
@@ -171,16 +152,25 @@ function Game({ initialScene = 'Start' }) {
         const newXp = prev.xp + stats.gold * 10; // 10 XP por gold
         const newLevel = Math.floor(newXp / 100) + 1; // Nível a cada 100 XP
         
-        return {
+        const updatedRegistry = {
           ...prev,
           gold: newGold,
           xp: newXp,
           level: newLevel
         };
+        
+        // Salva imediatamente no localStorage
+        saveToStorage(STORAGE_KEYS.PLAYER_REGISTRY, updatedRegistry);
+        console.log('💰 Gold e XP salvos:', { gold: newGold, xp: newXp, level: newLevel });
+        
+        return updatedRegistry;
       });
     }
     
-    setGameStats({ ...stats, stars });
+    const finalStats = { ...stats, stars };
+    setGameStats(finalStats);
+    saveToStorage(STORAGE_KEYS.GAME_STATS, finalStats);
+    
     backgroundMusic.current.pause();
     setScene('EndResult');
   };
@@ -212,7 +202,7 @@ function Game({ initialScene = 'Start' }) {
       </div>),
     Init: (
       <InitScene 
-        setScene={setScene} 
+        setScene={handleSetScene} 
         rooms={roomsWithCosts} 
         setRoomCurrent={setRoomCurrent}
         setActiveRoomIndex={setActiveRoomIndex}

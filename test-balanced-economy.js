@@ -6,7 +6,7 @@ console.log('=== TESTE DO SISTEMA DE ECONOMIA BALANCEADA ===\n');
 const testRooms = [
   {
     level: 1,
-    gameDuration: 30,
+    gameDuration: 100,
     spawnInterval: 3000,
     enemy: {
       common: { drop: 100 },

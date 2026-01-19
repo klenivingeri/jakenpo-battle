@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GameScene } from '../components/Scene/GameScene';
+import { generateRooms } from '../utils/roomUtils';
 import {
   getPlayerRegistry,
   getIsEconomyDebugOn,
@@ -37,44 +38,7 @@ function GamePageInfinite() {
   }, []);
 
   // Gera a configuração de todas as 100 fases
-  const rooms = useMemo(() => Array.from({ length: 100 }, (_, i) => {
-    const level = i + 1;
-    const resetIndex = i % 30;
-
-    const baseSpeed = 2 + (Math.floor(resetIndex / 2) * 0.40);
-    const baseSpawnInterval = Math.max(600, 3000 - (Math.min(resetIndex, 20) * 100));
-
-    const progressFactor = Math.min(i / 99, 1);
-    
-    const commonDrop = Math.max(10, 100 - (progressFactor * 60));
-    const uncommonDrop = Math.min(30, progressFactor * 30);
-    const rareDrop = Math.min(20, progressFactor * 20);
-    const heroicDrop = Math.min(15, progressFactor * 15);
-    const legendaryDrop = Math.min(10, progressFactor * 10);
-    const mythicDrop = Math.min(8, progressFactor * 8);
-    const immortalDrop = Math.min(7, progressFactor * 7);
-    
-    const total = commonDrop + uncommonDrop + rareDrop + heroicDrop + legendaryDrop + mythicDrop + immortalDrop;
-    
-    const enemyConfig = {
-      common: { drop: (commonDrop / total) * 100 },
-      uncommon: { drop: (uncommonDrop / total) * 100 },
-      rare: { drop: (rareDrop / total) * 100 },
-      heroic: { drop: (heroicDrop / total) * 100 },
-      legendary: { drop: (legendaryDrop / total) * 100 },
-      mythic: { drop: (mythicDrop / total) * 100 },
-      immortal: { drop: (immortalDrop / total) * 100 }
-    };
-    
-    return {
-      id: level,
-      gameDuration: 30 + resetIndex,
-      speed: baseSpeed,
-      spawnInterval: baseSpawnInterval,
-      bulletsPerAction: 1,
-      enemy: enemyConfig
-    };
-  }), []);
+  const rooms = useMemo(() => generateRooms(), []);
 
   const currentRoom = rooms[currentPhase];
 

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import JankenpoChaos from '../components/Jankenpo/JankenpoChaos';
 import { Footer } from '../components/HUD/Control';
 import EconomyDebug from '../components/debug/EconomyDebug';
+import { generateRooms } from '../utils/roomUtils';
 import {
   getPlayerRegistry,
   getIsEconomyDebugOn,
@@ -39,49 +40,7 @@ function GamePageChaos() {
   }, []);
 
   // Gera a configuração de todas as 100 fases do modo caos
-  const rooms = useMemo(() => Array.from({ length: 100 }, (_, i) => {
-    const level = i + 1;
-    const resetIndex = i % 30;
-
-    // Velocidade mais alta que o modo infinito para aumentar o caos
-    const baseSpeed = 2.5 + (Math.floor(resetIndex / 2) * 0.5);
-    
-    // Spawn mais rápido para criar mais caos
-    const baseSpawnInterval = Math.max(400, 2500 - (Math.min(resetIndex, 20) * 80));
-
-    const progressFactor = Math.min(i / 99, 1);
-    
-    // Configuração de drops progressivos
-    const commonDrop = Math.max(10, 100 - (progressFactor * 60));
-    const uncommonDrop = Math.min(30, progressFactor * 30);
-    const rareDrop = Math.min(20, progressFactor * 20);
-    const heroicDrop = Math.min(15, progressFactor * 15);
-    const legendaryDrop = Math.min(10, progressFactor * 10);
-    const mythicDrop = Math.min(8, progressFactor * 8);
-    const immortalDrop = Math.min(7, progressFactor * 7);
-    
-    const total = commonDrop + uncommonDrop + rareDrop + heroicDrop + legendaryDrop + mythicDrop + immortalDrop;
-    
-    const enemyConfig = {
-      common: { drop: (commonDrop / total) * 100 },
-      uncommon: { drop: (uncommonDrop / total) * 100 },
-      rare: { drop: (rareDrop / total) * 100 },
-      heroic: { drop: (heroicDrop / total) * 100 },
-      legendary: { drop: (legendaryDrop / total) * 100 },
-      mythic: { drop: (mythicDrop / total) * 100 },
-      immortal: { drop: (immortalDrop / total) * 100 }
-    };
-    
-    return {
-      id: level,
-      gameDuration: 30 + resetIndex,
-      speed: baseSpeed,
-      spawnInterval: baseSpawnInterval,
-      bulletsPerAction: 1,
-      enemy: enemyConfig,
-      isChaosMode: true
-    };
-  }), []);
+  const rooms = useMemo(() => generateRooms(0, { isChaosMode: true }), []);
 
   const currentRoom = rooms[currentPhase];
 

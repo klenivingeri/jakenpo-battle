@@ -118,8 +118,8 @@ export const InitScene = ({ rooms, setRoomCurrent, setActiveRoomIndex, setScene,
       setIsPurchaseModalOpen(false);
       setSelectedRoom(null);
 
-      // Inicia a fase automaticamente
-      setScene('Game');
+      // Inicia a fase automaticamente, passando o índice diretamente
+      setScene('Game', roomIndex);
     }
   };
 
@@ -130,8 +130,10 @@ export const InitScene = ({ rooms, setRoomCurrent, setActiveRoomIndex, setScene,
 
     if (isUnlocked) {
       // Fase já desbloqueada - pode jogar
+      console.log('🎯 Room clicada:', { roomId: room.id, index, gameDuration: room.gameDuration, speed: room.speed, spawnInterval: room.spawnInterval });
       setActiveRoomIndex(index);
-      setScene('Game');
+      // Passa o índice diretamente para evitar problema de batching do React
+      setScene('Game', index);
     } else if (isNextRoom) {
       // Próxima fase - sempre abre modal de compra para mostrar requisitos
       setSelectedRoom(room);

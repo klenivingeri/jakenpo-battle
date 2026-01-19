@@ -11,6 +11,7 @@ import {
   STORAGE_KEYS
 } from '../utils/storageUtils';
 import { calculateUnlockCost } from '../utils/economyUtils';
+import { generateRooms } from '../utils/roomUtils';
 
 function GamePage() {
   const navigate = useNavigate();
@@ -45,45 +46,7 @@ function GamePage() {
     saveToStorage(STORAGE_KEYS.PLAYER_REGISTRY, playerRegistry);
   }, [roomCurrent, gameStats, roomStars, playerRegistry]);
 
-  const rooms = useMemo(() => Array.from({ length: 100 }, (_, i) => {
-    const level = i + 1;
-    const resetIndex = i % 30;
-
-    const baseSpeed = 2 + (Math.floor(resetIndex / 2) * 0.40);
-    const baseSpawnInterval = Math.max(600, 3000 - (Math.min(resetIndex, 20) * 100));
-
-    const progressFactor = Math.min(i / 99, 1);
-    
-    const commonDrop = Math.max(10, 100 - (progressFactor * 60));
-    const uncommonDrop = Math.min(30, progressFactor * 30);
-    const rareDrop = Math.min(20, progressFactor * 20);
-    const heroicDrop = Math.min(15, progressFactor * 15);
-    const legendaryDrop = Math.min(10, progressFactor * 10);
-    const mythicDrop = Math.min(8, progressFactor * 8);
-    const immortalDrop = Math.min(7, progressFactor * 7);
-    
-    const total = commonDrop + uncommonDrop + rareDrop + heroicDrop + legendaryDrop + mythicDrop + immortalDrop;
-    
-    const enemyConfig = {
-      common: { drop: (commonDrop / total) * 100 },
-      uncommon: { drop: (uncommonDrop / total) * 100 },
-      rare: { drop: (rareDrop / total) * 100 },
-      heroic: { drop: (heroicDrop / total) * 100 },
-      legendary: { drop: (legendaryDrop / total) * 100 },
-      mythic: { drop: (mythicDrop / total) * 100 },
-      immortal: { drop: (immortalDrop / total) * 100 }
-    };
-    
-    return {
-      id: level,
-      gameDuration: 30 + resetIndex,
-      speed: baseSpeed,
-      spawnInterval: baseSpawnInterval,
-      bulletsPerAction: 1,
-      disableButton: i > roomCurrent,
-      enemy: enemyConfig
-    };
-  }), [roomCurrent]);
+  const rooms = useMemo(() => generateRooms(roomCurrent), [roomCurrent]);
 
   const roomsWithCosts = useMemo(() => {
     return rooms.map((room) => {
@@ -94,6 +57,22 @@ function GamePage() {
 
   const currentRoom = roomsWithCosts[roomIndex];
 
+  // Debug: Log da configuração da room atual
+  useEffect(() => {
+    console.log('🎮 Room Index:', roomIndex);
+    console.log('🎮 Current Room Config COMPLETA:', {
+      id: currentRoom.id,
+      level: roomIndex + 1,
+      gameDuration: currentRoom.gameDuration,
+      speed: currentRoom.speed,
+      spawnInterval: currentRoom.spawnInterval,
+      bulletsPerAction: currentRoom.bulletsPerAction,
+      unlockCost: currentRoom.unlockCost,
+      enemy: currentRoom.enemy
+    });
+    console.log('📊 Resumo:', `Duração: ${currentRoom.gameDuration}s | Velocidade: ${currentRoom.speed.toFixed(2)} | Spawn: ${(currentRoom.spawnInterval/1000).toFixed(2)}s`);
+  }, [roomIndex, currentRoom]);
+
   const handleBullet = (type, shooter) => {
     if (shooter === 'player') {
       setPlayer(prev => ({ ...prev, bulletType: type }));
@@ -101,14 +80,29 @@ function GamePage() {
   };
 
   const handleGameEnd = (stats) => {
+    console.log('🏁 handleGameEnd chamado:', { stats, playerHP: player.hp, roomIndex });
+    
     let stars = 0;
     if (stats.result === 'win') {
       stars = player.hp >= 10 ? 3 : player.hp >= 5 ? 2 : 1;
+      console.log('⭐ Calculando estrelas:', { playerHP: player.hp, stars });
+      
       const newStars = [...roomStars];
+      const oldStars = newStars[roomIndex] || 0;
+      
+      console.log('⭐ Comparando estrelas:', { oldStars, newStars: stars, willUpdate: stars > oldStars });
+      
       if (stars > newStars[roomIndex]) {
         newStars[roomIndex] = stars;
         setRoomStars(newStars);
+        // Salva imediatamente no localStorage
+        saveToStorage(STORAGE_KEYS.ROOM_STARS, newStars);
+        console.log('⭐ Estrelas salvas:', { roomIndex, stars, allStars: newStars });
+      } else {
+        console.log('⭐ Estrelas não atualizadas (já tinha melhor ou igual)');
       }
+    } else {
+      console.log('❌ Não foi vitória, resultado:', stats.result);
     }
     
     if (stats.gold > 0) {
@@ -117,18 +111,27 @@ function GamePage() {
         const newXp = prev.xp + stats.gold * 10;
         const newLevel = Math.floor(newXp / 100) + 1;
         
-        return {
+        const updatedRegistry = {
           ...prev,
           gold: newGold,
           xp: newXp,
           level: newLevel
         };
+        
+        // Salva imediatamente no localStorage
+        saveToStorage(STORAGE_KEYS.PLAYER_REGISTRY, updatedRegistry);
+        console.log('💰 Gold e XP salvos:', { gold: newGold, xp: newXp, level: newLevel });
+        
+        return updatedRegistry;
       });
     }
     
-    setGameStats({ ...stats, stars });
+    const finalStats = { ...stats, stars };
+    setGameStats(finalStats);
+    saveToStorage(STORAGE_KEYS.GAME_STATS, finalStats);
+    
     backgroundMusic.current.pause();
-    navigate('/result', { state: { stats: { ...stats, stars } } });
+    navigate('/result', { state: { stats: finalStats } });
   };
 
   return (
