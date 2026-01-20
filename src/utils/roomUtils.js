@@ -11,17 +11,20 @@ export const generateRooms = (roomCurrent = 0, options = {}) => {
   return Array.from({ length: 100 }, (_, i) => {
     const level = i + 1;
 
+    // Calcula qual ciclo de 20 rooms estamos (0-19, 20-39, 40-59, etc.)
+    const cycleIndex = i % 10; // 0 a 19 dentro do ciclo
+
     // Progressão contínua de velocidade e spawn
     // Velocidade base aumenta com o nível
     let baseSpeed = 2 + (Math.floor(Math.min(i, 29) / 2) * 0.06);
     
-    // Spawn interval diminui com o nível (fica mais rápido)
-    let baseSpawnInterval = Math.max(600, 3000 - (Math.min(i, 10) * 24));
+    // Spawn interval diminui com o nível (fica mais rápido) - RESETA A CADA 20 ROOMS
+    let baseSpawnInterval = Math.max(600, 3000 - (cycleIndex * 24));
 
     // Modo caos é mais rápido e intenso
     if (isChaosMode) {
       baseSpeed = 2.5 + (Math.floor(i / 2) * 0.075);
-      baseSpawnInterval = Math.max(400, 2500 - (i * 21));
+      baseSpawnInterval = Math.max(400, 2500 - (cycleIndex * 21));
     }
 
     // Sistema de drops de raridade baseado no nível
@@ -47,19 +50,14 @@ export const generateRooms = (roomCurrent = 0, options = {}) => {
       mythic: { drop: (mythicDrop / total) * 100 },
       immortal: { drop: (immortalDrop / total) * 100 }
     };
-    
-    // Bullets por spawn aumenta gradualmente com o nível
-    // Nível 1-19: 1 bullet
-    // Nível 20-39: 2 bullets (máximo)
-    // Nível 40-59: 3 bullets (máximo)
-    // Nível 60-79: 4 bullets (máximo)
-    // Nível 80-99: 5 bullets (máximo)
-    // Nível 100: 6 bullets (máximo)
+
     let bulletsPerAction = 1;
     if (level >= 15) bulletsPerAction = 2;
-    if (level >= 40) bulletsPerAction = 3;
-    if (level >= 65) bulletsPerAction = 4;
-
+    if (level >= 50) bulletsPerAction = 3;
+    if (level >= 85) bulletsPerAction = 4;
+    if (level >= 120) bulletsPerAction = 5;
+    if (level >= 155) bulletsPerAction = 6;
+    if (level >= 179) bulletsPerAction = 7;
 
     return {
       id: level,

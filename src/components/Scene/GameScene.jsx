@@ -43,7 +43,11 @@ export const GameScene = (props) => {
           />
         )}
       </div>
-      <Footer {...props}></Footer>
+      <Footer 
+        {...props}
+        roomLevel={props.roomLevel}
+        onSpeedChange={props.onSpeedChange}
+      />
       <GameTutorial />
     </div></>
   )

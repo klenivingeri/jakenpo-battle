@@ -101,6 +101,9 @@ export const ResultScene = ({gameStats, setScene, isInfiniteMode = false, isChao
             {Array.from({ length: gameStats.stars }).map((_, i) => (
               <span key={i} style={{ fontSize: (isInfiniteMode || isChaosMode) ? '1.8rem' : '2.5rem' }}>⭐</span>
             ))}
+            <div style={{ fontSize: '1rem', marginTop: '10px', color: '#000' }}>
+              Velocidade: {gameStats.speedUsed ? gameStats.speedUsed.toFixed(1) : 'N/A'}x
+            </div>
           </div>
         )}
       </div>

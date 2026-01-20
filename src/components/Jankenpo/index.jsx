@@ -238,6 +238,7 @@ const Jankenpo = ({
     totalTime = 0, // Tempo total acumulado (modo infinito)
     timeLeft: externalTimeLeft, // TimeLeft externo (modo infinito)
     setTimeLeft: externalSetTimeLeft, // Setter externo (modo infinito)
+    speedMultiplier = 1, // Multiplicador de velocidade
     enemyDropConfig = {
         common: { drop: 100 },
         uncommon: { drop: 0 },
@@ -451,6 +452,9 @@ const Jankenpo = ({
         if (isGameOver || !loadedImages || !canvasRef.current) return;
 
         const timeouts = []; // Array para rastrear todos os timeouts
+        
+        // Aplicar o multiplicador de velocidade ao spawn interval
+        const adjustedSpawnInterval = spawnInterval / speedMultiplier;
 
         const enemyShootInterval = setInterval(() => {
             const bulletTypes = Object.keys(BULLET_CONFIG);
@@ -470,18 +474,10 @@ const Jankenpo = ({
                     // 40% chance de 2 bullets
                     bulletsToSpawn = roll < 40 ? 2 : 1;
                 } else if (bulletsPerSpawn === 3) {
-                    // 20% trio, 30% duo, 50% solo
-                    if (roll < 20) bulletsToSpawn = 3;
-                    else if (roll < 50) bulletsToSpawn = 2;
+                    // 7% trio, 23% duo, 70% solo (muito mais difícil para trio)
+                    if (roll < 7) bulletsToSpawn = 3;
+                    else if (roll < 30) bulletsToSpawn = 2;
                     else bulletsToSpawn = 1;
-                } else if (bulletsPerSpawn >= 4) {
-                    // Para valores maiores, distribuir chances
-                    const max = Math.min(bulletsPerSpawn, 7);
-                    if (roll < 10) bulletsToSpawn = max; // 10% chance máximo
-                    else if (roll < 30) bulletsToSpawn = Math.max(2, Math.floor(max * 0.7)); // 20% chance médio-alto
-                    else if (roll < 60) bulletsToSpawn = Math.max(2, Math.floor(max * 0.5)); // 30% chance médio
-                    else if (roll < 80) bulletsToSpawn = 2; // 20% chance duo
-                    else bulletsToSpawn = 1; // 20% chance solo
                 }
             }
             
@@ -512,14 +508,14 @@ const Jankenpo = ({
                 }, i * 500); // 500ms de delay entre cada bullet
                 timeouts.push(timeout);
             }
-        }, spawnInterval);
+        }, adjustedSpawnInterval);
 
         return () => {
             clearInterval(enemyShootInterval);
             // Limpar todos os timeouts pendentes
             timeouts.forEach(timeout => clearTimeout(timeout));
         };
-    }, [isGameOver, loadedImages, spawnInterval, enemyDropConfig, roomLevel, bulletsPerSpawn]);
+    }, [isGameOver, loadedImages, spawnInterval, enemyDropConfig, roomLevel, bulletsPerSpawn, speedMultiplier]);
 
     // Lógica de disparo do jogador
     useEffect(() => {
@@ -569,9 +565,12 @@ const Jankenpo = ({
 
             // Mover e redimensionar balas
             const now = performance.now();
+            
+            // Aplicar o multiplicador de velocidade
+            const adjustedSpeed = speed * speedMultiplier;
 
-            updateBullets(playerBulletsRef.current, -speed, now, canvas.width, DEFAULT_GAME_CONFIG);
-            updateBullets(enemyBulletsRef.current, speed, now, canvas.width, DEFAULT_GAME_CONFIG);
+            updateBullets(playerBulletsRef.current, -adjustedSpeed, now, canvas.width, DEFAULT_GAME_CONFIG);
+            updateBullets(enemyBulletsRef.current, adjustedSpeed, now, canvas.width, DEFAULT_GAME_CONFIG);
 
             // --- Detecção de Colisão ---
             for (const pBullet of playerBulletsRef.current) {
@@ -695,7 +694,7 @@ const Jankenpo = ({
         animationFrameId = requestAnimationFrame(update);
 
         return () => cancelAnimationFrame(animationFrameId);
-    }, [loadedImages, isGameOver, setPlayer, setEnemy, speed, vibrateHit, vibrateDamage, showLevelUp, levelUpProgress]);
+    }, [loadedImages, isGameOver, setPlayer, setEnemy, speed, vibrateHit, vibrateDamage, showLevelUp, levelUpProgress, speedMultiplier]);
 
     return (
         <div ref={containerRef} className="canvas-container">

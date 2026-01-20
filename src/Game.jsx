@@ -29,6 +29,7 @@ function Game({ initialScene = 'Start' }) {
   const [scene, setScene] = useState(initialScene);
   const [isMusicOn, setIsMusicOnState] = useState(() => getIsMusicOn());
   const [isEconomyDebugOn, setIsEconomyDebugOnState] = useState(() => getIsEconomyDebugOn());
+  const [speedMultiplier, setSpeedMultiplier] = useState(1); // Estado do multiplicador de velocidade
 
   // Sincroniza o estado da cena quando a prop initialScene mudar
   useEffect(() => {
@@ -119,6 +120,11 @@ function Game({ initialScene = 'Start' }) {
     }
   };
 
+  // Callback para mudança de velocidade
+  const handleSpeedChange = (newSpeed) => {
+    setSpeedMultiplier(newSpeed);
+  };
+
   const handleGameEnd = (stats) => {
     console.log('🏁 handleGameEnd chamado:', { stats, playerHP: player.hp, activeRoomIndex });
     
@@ -150,7 +156,7 @@ function Game({ initialScene = 'Start' }) {
     if (stats.gold > 0) {
       setPlayerRegistry(prev => {
         const newGold = prev.gold + stats.gold;
-        const newXp = prev.xp + stats.gold * 10; // 10 XP por gold
+        const newXp = prev.xp + stats.gold * 2; // 2 XP por gold
         const newLevel = Math.floor(newXp / 100) + 1; // Nível a cada 100 XP
         
         const updatedRegistry = {
@@ -234,6 +240,8 @@ function Game({ initialScene = 'Start' }) {
         roomLevel={currentRoom.id}
         enemyDropConfig={currentRoom.enemy}
         isEconomyDebugOn={isEconomyDebugOn}
+        speedMultiplier={speedMultiplier}
+        onSpeedChange={handleSpeedChange}
       />
     ),
     EndResult: (

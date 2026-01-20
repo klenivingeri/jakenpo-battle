@@ -26,22 +26,34 @@ function GamePage() {
   const [gameStats, setGameStats] = useState(() => getGameStats());
   const [roomStars, setRoomStars] = useState(() => getRoomStars());
   const [playerRegistry, setPlayerRegistry] = useState(() => getPlayerRegistry());
+  const [speedMultiplier, setSpeedMultiplier] = useState(1); // Estado do multiplicador de velocidade
 
   const backgroundMusic = useRef(new Audio('/assets/song/song-background.mp3'));
+  const [audioStarted, setAudioStarted] = useState(false);
 
   useEffect(() => {
     const audio = backgroundMusic.current;
     audio.loop = true;
     audio.volume = 0.05;
-    audio.play().catch(e => console.log('Audio play failed:', e));
+
+    const startAudio = () => {
+      if (!audioStarted) {
+        audio.play().catch(e => {});
+        setAudioStarted(true);
+      }
+    };
+
+    // Tenta reproduzir o áudio quando o usuário interagir com a página
+    const events = ['click', 'touchstart', 'keydown'];
+    events.forEach(event => document.addEventListener(event, startAudio, { once: true }));
 
     return () => {
+      events.forEach(event => document.removeEventListener(event, startAudio));
       audio.pause();
       audio.currentTime = 0;
-      // Remover source para liberar recursos
       audio.src = '';
     };
-  }, []);
+  }, [audioStarted]);
 
   useEffect(() => {
     saveToStorage(STORAGE_KEYS.ROOM_CURRENT, roomCurrent);
@@ -81,6 +93,11 @@ function GamePage() {
     if (shooter === 'player') {
       setPlayer(prev => ({ ...prev, bulletType: type }));
     }
+  };
+
+  // Callback para mudança de velocidade
+  const handleSpeedChange = (newSpeed) => {
+    setSpeedMultiplier(newSpeed);
   };
 
   const handleGameEnd = (stats) => {
@@ -156,6 +173,8 @@ function GamePage() {
       roomLevel={currentRoom.id}
       enemyDropConfig={currentRoom.enemy}
       isEconomyDebugOn={isEconomyDebugOn}
+      speedMultiplier={speedMultiplier}
+      onSpeedChange={handleSpeedChange}
     />
   );
 }

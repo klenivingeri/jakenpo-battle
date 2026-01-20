@@ -296,6 +296,7 @@ const JankenpoChaos = ({
     totalTime = 0,
     timeLeft: externalTimeLeft,
     setTimeLeft: externalSetTimeLeft,
+    speedMultiplier = 1, // Multiplicador de velocidade
     enemyDropConfig = {
         common: { drop: 100 },
         uncommon: { drop: 0 },
@@ -437,6 +438,9 @@ const JankenpoChaos = ({
     // Lógica de disparo do inimigo - SPAWN ALEATÓRIO EM X
     useEffect(() => {
         if (isGameOver || !loadedImages || !canvasRef.current) return;
+        
+        // Aplicar o multiplicador de velocidade ao spawn interval
+        const adjustedSpawnInterval = spawnInterval / speedMultiplier;
 
         const enemyShootInterval = setInterval(() => {
             setEnemyBullets(prevBullets => {
@@ -463,10 +467,10 @@ const JankenpoChaos = ({
                 
                 return [...prevBullets, newBullet];
             });
-        }, spawnInterval);
+        }, adjustedSpawnInterval);
 
         return () => clearInterval(enemyShootInterval);
-    }, [isGameOver, loadedImages, spawnInterval, enemyDropConfig, roomLevel]);
+    }, [isGameOver, loadedImages, spawnInterval, enemyDropConfig, roomLevel, speedMultiplier]);
 
     // Lógica de disparo do jogador
     useEffect(() => {
@@ -515,10 +519,13 @@ const JankenpoChaos = ({
             context.clearRect(0, 0, canvas.width, canvas.height);
 
             const now = performance.now();
+            
+            // Aplicar o multiplicador de velocidade
+            const adjustedSpeed = speed * speedMultiplier;
 
             // Mover bullets com targeting para player, movimento linear para inimigo
-            updatePlayerBulletsWithTargeting(playerBulletsRef.current, enemyBulletsRef.current, -speed, now, canvas.width, DEFAULT_GAME_CONFIG);
-            updateEnemyBullets(enemyBulletsRef.current, speed, now, DEFAULT_GAME_CONFIG);
+            updatePlayerBulletsWithTargeting(playerBulletsRef.current, enemyBulletsRef.current, -adjustedSpeed, now, canvas.width, DEFAULT_GAME_CONFIG);
+            updateEnemyBullets(enemyBulletsRef.current, adjustedSpeed, now, DEFAULT_GAME_CONFIG);
 
             // --- Detecção de Colisão ---
             for (const pBullet of playerBulletsRef.current) {
@@ -592,7 +599,7 @@ const JankenpoChaos = ({
         animationFrameId = requestAnimationFrame(update);
 
         return () => cancelAnimationFrame(animationFrameId);
-    }, [loadedImages, isGameOver, setPlayer, setEnemy, speed, vibrateHit, vibrateDamage]);
+    }, [loadedImages, isGameOver, setPlayer, setEnemy, speed, vibrateHit, vibrateDamage, speedMultiplier]);
 
     return (
         <div ref={containerRef} className="canvas-container">

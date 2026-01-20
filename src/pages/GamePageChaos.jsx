@@ -19,6 +19,7 @@ function GamePageChaos() {
   const [disableButtonPlayer, setdisableButtonPlayer] = useState(false);
   const [isEconomyDebugOn] = useState(() => getIsEconomyDebugOn());
   const [playerRegistry, setPlayerRegistry] = useState(() => getPlayerRegistry());
+  const [speedMultiplier, setSpeedMultiplier] = useState(1); // Estado do multiplicador de velocidade
   
   // Estados específicos do modo caos
   const [currentPhase, setCurrentPhase] = useState(0);
@@ -28,19 +29,31 @@ function GamePageChaos() {
   const [timeLeft, setTimeLeft] = useState(30);
 
   const backgroundMusic = useRef(new Audio('/assets/song/song-background.mp3'));
+  const [audioStarted, setAudioStarted] = useState(false);
 
   useEffect(() => {
     const audio = backgroundMusic.current;
     audio.loop = true;
     audio.volume = 0.05;
-    audio.play().catch(e => console.log('Audio play failed:', e));
+
+    const startAudio = () => {
+      if (!audioStarted) {
+        audio.play().catch(e => {});
+        setAudioStarted(true);
+      }
+    };
+
+    // Tenta reproduzir o áudio quando o usuário interagir com a página
+    const events = ['click', 'touchstart', 'keydown'];
+    events.forEach(event => document.addEventListener(event, startAudio, { once: true }));
 
     return () => {
+      events.forEach(event => document.removeEventListener(event, startAudio));
       audio.pause();
       audio.currentTime = 0;
       audio.src = '';
     };
-  }, []);
+  }, [audioStarted]);
 
   // Gera a configuração de todas as 100 fases do modo caos
   const rooms = useMemo(() => generateRooms(0, { isChaosMode: true }), []);
@@ -51,6 +64,11 @@ function GamePageChaos() {
     if (shooter === 'player') {
       setPlayer(prev => ({ ...prev, bulletType: type }));
     }
+  };
+
+  // Callback para mudança de velocidade
+  const handleSpeedChange = (newSpeed) => {
+    setSpeedMultiplier(newSpeed);
   };
 
   // Função chamada quando uma fase é completada
@@ -148,6 +166,7 @@ function GamePageChaos() {
           timeLeft={timeLeft}
           setTimeLeft={setTimeLeft}
           enemyDropConfig={currentRoom.enemy}
+          speedMultiplier={speedMultiplier}
         />
         
         <div
@@ -179,6 +198,9 @@ function GamePageChaos() {
         handleBullet={handleBullet}
         player={player}
         disableButtonPlayer={disableButtonPlayer}
+        roomLevel={currentRoom.id}
+        onSpeedChange={handleSpeedChange}
+        isSpecialMode={true}
       />
     </div>
   );
