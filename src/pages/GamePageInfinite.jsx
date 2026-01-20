@@ -28,12 +28,15 @@ function GamePageInfinite() {
   const backgroundMusic = useRef(new Audio('/assets/song/song-background.mp3'));
 
   useEffect(() => {
-    backgroundMusic.current.loop = true;
-    backgroundMusic.current.volume = 0.05;
-    backgroundMusic.current.play().catch(e => console.log('Audio play failed:', e));
+    const audio = backgroundMusic.current;
+    audio.loop = true;
+    audio.volume = 0.05;
+    audio.play().catch(e => console.log('Audio play failed:', e));
 
     return () => {
-      backgroundMusic.current.pause();
+      audio.pause();
+      audio.currentTime = 0;
+      audio.src = '';
     };
   }, []);
 

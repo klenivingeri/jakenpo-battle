@@ -105,6 +105,9 @@ const handleBulletBoundaryCheck = (bullets, canvas, isPlayerBullet, setEntity, s
 
 // Função auxiliar para gerar partículas para bullets
 const spawnParticlesForBullets = (bullets, particles, loadedImages, config) => {
+    // Limitar quantidade de partículas geradas por frame
+    if (particles.length > 150) return;
+    
     bullets.forEach(bullet => {
         const dist = Math.abs(bullet.y - bullet.lastParticleY);
         if (dist > config.PARTICLE_SPAWN_DISTANCE) {
@@ -166,7 +169,8 @@ const renderParticles = (context, particles, now, config) => {
     });
     
     context.globalAlpha = 1;
-    return activeParticles;
+    // Limitar o número de partículas ativas para evitar acúmulo
+    return activeParticles.slice(-100);
 };
 
 // Função auxiliar para renderizar explosões
@@ -268,6 +272,9 @@ const Jankenpo = ({
 
     // Reset completo quando a room muda (gameDuration e roomLevel são identificadores da room)
     useEffect(() => {
+        let rafId = null;
+        let timeoutId = null;
+        
         // No modo infinito, detecta mudança de fase e mostra efeito visual
         if (isInfiniteMode && previousPhaseRef.current !== currentPhase && previousPhaseRef.current !== undefined) {
             // Vibração de feedback
@@ -288,16 +295,16 @@ const Jankenpo = ({
                 setLevelUpProgress(progress);
                 
                 if (progress < 1) {
-                    requestAnimationFrame(animateGradient);
+                    rafId = requestAnimationFrame(animateGradient);
                 } else {
                     setShowLevelUp(false);
                 }
             };
-            requestAnimationFrame(animateGradient);
+            rafId = requestAnimationFrame(animateGradient);
 
             // Mostra notificação lateral
             setShowPhaseNotification(true);
-            setTimeout(() => {
+            timeoutId = setTimeout(() => {
                 setShowPhaseNotification(false);
             }, 3000);
         }
@@ -329,7 +336,12 @@ const Jankenpo = ({
             
             setTimeout(() => setIsInitialized(true), 50);
         }
-    }, [gameDuration, roomLevel, setPlayer, setEnemy, isInfiniteMode, isInitialized]); // Reage às mudanças de room
+        
+        return () => {
+            if (rafId) cancelAnimationFrame(rafId);
+            if (timeoutId) clearTimeout(timeoutId);
+        };
+    }, [gameDuration, roomLevel, setPlayer, setEnemy, isInfiniteMode, isInitialized, currentPhase]); // Reage às mudanças de room
 
     // Redimensionamento do Canvas
     useEffect(() => {
@@ -438,9 +450,13 @@ const Jankenpo = ({
     useEffect(() => {
         if (isGameOver || !loadedImages || !canvasRef.current) return;
 
+        const timeouts = []; // Array para rastrear todos os timeouts
+
         const enemyShootInterval = setInterval(() => {
             const bulletTypes = Object.keys(BULLET_CONFIG);
             const canvas = canvasRef.current;
+            if (!canvas) return;
+            
             const centerX = canvas.width / 2;
             const bulletSize = DEFAULT_GAME_CONFIG.BULLET_SIZE;
             
@@ -473,9 +489,9 @@ const Jankenpo = ({
             const totalWidth = (bulletsToSpawn - 1) * spacing;
             const startX = centerX - totalWidth / 2;
             
-            // Spawnar bullets com delay de 0.3s entre cada um
+            // Spawnar bullets com delay de 0.5s entre cada um
             for (let i = 0; i < bulletsToSpawn; i++) {
-                setTimeout(() => {
+                const timeout = setTimeout(() => {
                     setEnemyBullets(prevBullets => {
                         const newType = selectRandomBulletType(prevBullets, bulletTypes);
                         const rarity = selectBulletRarity(enemyDropConfig);
@@ -493,11 +509,16 @@ const Jankenpo = ({
                         
                         return [...prevBullets, newBullet];
                     });
-                }, i * 300); // 300ms (0.3s) de delay entre cada bullet
+                }, i * 500); // 500ms de delay entre cada bullet
+                timeouts.push(timeout);
             }
         }, spawnInterval);
 
-        return () => clearInterval(enemyShootInterval);
+        return () => {
+            clearInterval(enemyShootInterval);
+            // Limpar todos os timeouts pendentes
+            timeouts.forEach(timeout => clearTimeout(timeout));
+        };
     }, [isGameOver, loadedImages, spawnInterval, enemyDropConfig, roomLevel, bulletsPerSpawn]);
 
     // Lógica de disparo do jogador

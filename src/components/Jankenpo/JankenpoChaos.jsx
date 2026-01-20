@@ -119,6 +119,9 @@ const handleBulletBoundaryCheck = (bullets, canvas, isPlayerBullet, setEntity, s
 
 // Função auxiliar para gerar partículas para bullets
 const spawnParticlesForBullets = (bullets, particles, loadedImages, config) => {
+    // Limitar quantidade de partículas geradas por frame
+    if (particles.length > 150) return;
+    
     bullets.forEach(bullet => {
         const dist = Math.abs(bullet.y - bullet.lastParticleY);
         if (dist > config.PARTICLE_SPAWN_DISTANCE) {
@@ -180,7 +183,8 @@ const renderParticles = (context, particles, now, config) => {
     });
     
     context.globalAlpha = 1;
-    return activeParticles;
+    // Limitar o número de partículas ativas para evitar acúmulo
+    return activeParticles.slice(-100);
 };
 
 // Função auxiliar para renderizar explosões

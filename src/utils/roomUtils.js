@@ -13,10 +13,10 @@ export const generateRooms = (roomCurrent = 0, options = {}) => {
 
     // Progressão contínua de velocidade e spawn
     // Velocidade base aumenta com o nível
-    let baseSpeed = 2 + (Math.floor(i / 2) * 0.06);
+    let baseSpeed = 2 + (Math.floor(Math.min(i, 29) / 2) * 0.06);
     
     // Spawn interval diminui com o nível (fica mais rápido)
-    let baseSpawnInterval = Math.max(600, 3000 - (i * 24));
+    let baseSpawnInterval = Math.max(600, 3000 - (Math.min(i, 10) * 24));
 
     // Modo caos é mais rápido e intenso
     if (isChaosMode) {
@@ -56,12 +56,11 @@ export const generateRooms = (roomCurrent = 0, options = {}) => {
     // Nível 80-99: 5 bullets (máximo)
     // Nível 100: 6 bullets (máximo)
     let bulletsPerAction = 1;
-    if (level >= 30) bulletsPerAction = 2;
-    if (level >= 60) bulletsPerAction = 3;
-    if (level >= 90) bulletsPerAction = 4;
-    if (level >= 95) bulletsPerAction = 5;
+    if (level >= 15) bulletsPerAction = 2;
+    if (level >= 40) bulletsPerAction = 3;
+    if (level >= 65) bulletsPerAction = 4;
 
-    
+
     return {
       id: level,
       gameDuration: 30 + Math.floor(i / 3),
